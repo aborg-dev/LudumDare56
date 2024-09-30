@@ -1,4 +1,4 @@
-# Bevy New 2D
+# Ludum Dare 56
 
 This template is a great way to get started on a new 2D [Bevy](https://bevyengine.org/) game!
 Start with a [basic project structure](#write-your-game) and [CI / CD](#release-your-game) that can deploy to [itch.io](https://itch.io).
@@ -14,16 +14,6 @@ We assume that you know how to use Bevy already and have seen the [official Quic
 
 If you're new to Bevy, the patterns used in this template may look a bit weird at first glance.
 See our [Design Document](./docs/design.md) for more information on how we structured the code and why.
-
-## Create a new game
-
-Install [`cargo-generate`](https://github.com/cargo-generate/cargo-generate) and run the following command:
-
-```sh
-cargo generate thebevyflock/bevy_new_2d
-```
-
-Then [create a GitHub repository](https://github.com/new) and push your local repository to it.
 
 ## Write your game
 
@@ -93,13 +83,9 @@ You can read about them in the [Known Issues](./docs/known-issues.md) document.
 
 ## License
 
-The source code in this repository is licensed under any of the following at your option:
+The source code in this repository is licensed under MIT license:
 
-- [CC0-1.0 License](./LICENSE-CC0-1.0.txt)
-- [MIT License](./LICENSE-MIT.txt)
-- [Apache License, Version 2.0](./LICENSE-Apache-2.0.txt)
-
-The CC0 license explicitly does not waive patent rights, but we confirm that we hold no patent rights to anything presented in this repository.
+- [MIT License](./LICENSE)
 
 ## Credits
 
