@@ -79,7 +79,8 @@ fn check_spawn_timer(
             let direction = Vec2 {
                 x: dist.sample(rng),
                 y: dist.sample(rng),
-            };
+            }
+            .normalize();
             commands.add(SpawnCreature {
                 max_speed: 400.0,
                 pos,
