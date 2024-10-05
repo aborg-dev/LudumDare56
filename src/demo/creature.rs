@@ -66,7 +66,7 @@ fn end_game_on_too_many_creatures(
     mut next_screen: ResMut<NextState<Screen>>,
 ) {
     let count = creatures.iter().count();
-    if count > 15 {
+    if count > 100 {
         next_screen.set(Screen::Score);
     }
 }
