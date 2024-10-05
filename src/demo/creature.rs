@@ -68,14 +68,14 @@ pub struct SpawnCreature {
 
 impl Command for SpawnCreature {
     fn apply(self, world: &mut World) {
-        world.run_system_once_with(self, spawn_player);
+        world.run_system_once_with(self, spawn_creature);
     }
 }
 
-fn spawn_player(
+fn spawn_creature(
     In(config): In<SpawnCreature>,
     mut commands: Commands,
-    player_assets: Res<CreatureAssets>,
+    creature_assets: Res<CreatureAssets>,
     mut texture_atlas_layouts: ResMut<Assets<TextureAtlasLayout>>,
 ) {
     // A texture atlas is a way to split one image with a grid into multiple
@@ -91,7 +91,7 @@ fn spawn_player(
         Name::new("Creature"),
         Creature,
         SpriteBundle {
-            texture: player_assets.ducky.clone(),
+            texture: creature_assets.ducky.clone(),
             transform: Transform::from_scale(Vec2::splat(8.0).extend(1.0))
                 .with_translation(config.pos.extend(1.0)),
             ..Default::default()
