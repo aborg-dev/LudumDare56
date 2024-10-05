@@ -8,7 +8,7 @@ pub(super) fn plugin(app: &mut App) {
     app.add_systems(OnEnter(Screen::Title), spawn_title_screen);
 }
 
-fn spawn_title_screen(mut commands: Commands) {
+fn spawn_title_screen(mut commands: Commands, mut next_screen: ResMut<NextState<Screen>>) {
     commands
         .ui_root()
         .insert(StateScoped(Screen::Title))
@@ -19,6 +19,8 @@ fn spawn_title_screen(mut commands: Commands) {
             #[cfg(not(target_family = "wasm"))]
             children.button("Exit").observe(exit_app);
         });
+    // TODO: Remove this on release.
+    next_screen.set(Screen::Gameplay);
 }
 
 fn enter_gameplay_screen(_trigger: Trigger<OnPress>, mut next_screen: ResMut<NextState<Screen>>) {
