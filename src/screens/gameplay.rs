@@ -1,5 +1,6 @@
 //! The screen state for the main gameplay.
 
+use bevy::audio::Volume;
 use bevy::{input::common_conditions::input_just_pressed, prelude::*};
 
 use crate::{
@@ -48,7 +49,7 @@ fn play_gameplay_music(mut commands: Commands, mut music: ResMut<GameplayMusic>)
             .spawn((
                 AudioBundle {
                     source: music.handle.clone(),
-                    settings: PlaybackSettings::LOOP,
+                    settings: PlaybackSettings::LOOP.with_volume(Volume::ZERO),
                 },
                 Music,
             ))
