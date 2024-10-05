@@ -89,12 +89,22 @@ fn check_spawn_timer(
         let y_dist = Uniform::from(-half_size.y..half_size.y);
         let dist = Uniform::new(-1.0, 1.0);
 
-        for _ in 0..5 + wave_counter.wave {
+        // Add either a constant or a periodic movement each wave
+        let num_constant_movement: u32 = 3 + (wave_counter.wave + 1) / 2;
+        let num_periodic_movement: u32 = 2 + wave_counter.wave / 2;
+        // Add a circular movement every third round
+        let num_circle_movement: u32 = wave_counter.wave / 3;
+
+        let min_radius = 0.25;
+        let max_radius = 1.0 + wave_counter.wave as f32;
+
+        for _ in 0..num_constant_movement {
             let pos = Vec2 {
                 x: x_dist.sample(&mut rng),
                 y: y_dist.sample(&mut rng),
             };
-            let direction = Vec2 {
+
+            let speed = Vec2 {
                 x: dist.sample(rng),
                 y: dist.sample(rng),
             }
@@ -102,7 +112,45 @@ fn check_spawn_timer(
             commands.add(SpawnCreature {
                 max_speed: 400.0,
                 pos,
-                movement: MovementPattern::Constant(direction),
+                movement: MovementPattern::Constant { speed },
+                shrink_duration: SHRINK_DURATION,
+            });
+        }
+        for _ in 0..num_periodic_movement {
+            let pos = Vec2 {
+                x: x_dist.sample(&mut rng),
+                y: y_dist.sample(&mut rng),
+            };
+
+            let max_speed = Vec2 {
+                x: dist.sample(rng),
+                y: dist.sample(rng),
+            }
+            .normalize()
+                * 3.0;
+            commands.add(SpawnCreature {
+                max_speed: 400.0,
+                pos,
+                movement: MovementPattern::Periodic {
+                    timer: Timer::new(Duration::from_millis(500), TimerMode::Repeating),
+                    max_speed,
+                },
+                shrink_duration: SHRINK_DURATION,
+            });
+        }
+        for _ in 0..num_circle_movement {
+            let pos = Vec2 {
+                x: x_dist.sample(&mut rng),
+                y: y_dist.sample(&mut rng),
+            };
+
+            commands.add(SpawnCreature {
+                max_speed: 400.0,
+                pos,
+                movement: MovementPattern::Circle {
+                    timer: Timer::new(Duration::from_millis(1500), TimerMode::Repeating),
+                    radius: (dist.sample(rng) * max_radius).max(min_radius),
+                },
                 shrink_duration: SHRINK_DURATION,
             });
         }
