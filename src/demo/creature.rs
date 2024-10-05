@@ -35,6 +35,7 @@ pub(super) fn plugin(app: &mut App) {
             record_player_click_input.in_set(AppSet::RecordInput),
             (process_clicks_on_creatures, end_game_on_too_many_creatures)
                 .chain()
+                .run_if(resource_exists::<CreatureAssets>)
                 .in_set(AppSet::Update),
         ),
     );

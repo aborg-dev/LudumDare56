@@ -59,6 +59,7 @@ pub(super) fn plugin(app: &mut App) {
             tick_spawn_timer.in_set(AppSet::TickTimers),
             check_spawn_timer.in_set(AppSet::Update),
         )
+            .run_if(resource_exists::<WaveSound>)
             .run_if(in_state(Screen::Gameplay)),
     );
 }
