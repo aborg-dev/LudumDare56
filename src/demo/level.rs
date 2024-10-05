@@ -74,11 +74,6 @@ fn remove_resources(mut commands: Commands) {
     commands.remove_resource::<WaveCounter>();
 }
 
-/// A [`Command`] to spawn the level.
-/// Functions that accept only `&mut World` as their parameter implement [`Command`].
-/// We use this style when a command requires no configuration.
-pub fn spawn_level(_world: &mut World) {}
-
 fn tick_spawn_timer(time: Res<Time>, mut timer: ResMut<SpawnTimer>) {
     timer.0.tick(time.delta());
 }
