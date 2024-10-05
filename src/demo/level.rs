@@ -18,16 +18,10 @@ const SPAWN_DURATION: Duration = Duration::from_secs(5);
 #[reflect(Resource)]
 struct SpawnTimer(Timer);
 
-#[derive(Resource, Debug, Clone, PartialEq, Reflect)]
+#[derive(Resource, Debug, Clone, PartialEq, Reflect, Default)]
 #[reflect(Resource)]
 struct WaveCounter {
     wave: u32,
-}
-
-impl Default for WaveCounter {
-    fn default() -> Self {
-        Self { wave: 0 }
-    }
 }
 
 impl Default for SpawnTimer {
