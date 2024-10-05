@@ -12,7 +12,7 @@ use crate::AppSet;
 use std::time::Duration;
 
 const SHRINK_DURATION: Duration = Duration::from_secs(10);
-const SPAWN_DURATION: Duration = Duration::from_secs(1);
+const SPAWN_DURATION: Duration = Duration::from_secs(5);
 
 #[derive(Resource, Debug, Clone, PartialEq, Reflect)]
 #[reflect(Resource)]
@@ -69,21 +69,23 @@ fn check_spawn_timer(
         let half_size = size / 2.0;
         let x_dist = Uniform::from(-half_size.x..half_size.x);
         let y_dist = Uniform::from(-half_size.y..half_size.y);
-        let pos = Vec2 {
-            x: x_dist.sample(&mut rng),
-            y: y_dist.sample(&mut rng),
-        };
-
         let dist = Uniform::new(-1.0, 1.0);
-        let direction = Vec2 {
-            x: dist.sample(rng),
-            y: dist.sample(rng),
-        };
-        commands.add(SpawnCreature {
-            max_speed: 400.0,
-            pos,
-            movement: MovementPattern::Constant(direction),
-            shrink_duration: SHRINK_DURATION,
-        });
+
+        for _ in 0..5 {
+            let pos = Vec2 {
+                x: x_dist.sample(&mut rng),
+                y: y_dist.sample(&mut rng),
+            };
+            let direction = Vec2 {
+                x: dist.sample(rng),
+                y: dist.sample(rng),
+            };
+            commands.add(SpawnCreature {
+                max_speed: 400.0,
+                pos,
+                movement: MovementPattern::Constant(direction),
+                shrink_duration: SHRINK_DURATION,
+            });
+        }
     }
 }
