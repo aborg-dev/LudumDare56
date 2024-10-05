@@ -65,12 +65,10 @@ fn check_spawn_timer(
 
     if timer.0.just_finished() {
         let mut rng = &mut rand::thread_rng();
-        let size = window.size();
-        // TODO: This doesn't fully work, need to figure out why.
-        // Don't spawn on the edges.
-        let sprite_half_size = 256.0 / 2.0;
-        let x_dist = Uniform::from(sprite_half_size..size.x - sprite_half_size);
-        let y_dist = Uniform::from(sprite_half_size..size.y - sprite_half_size);
+        let size = window.size() - 256.0;
+        let half_size = size / 2.0;
+        let x_dist = Uniform::from(-half_size.x..half_size.x);
+        let y_dist = Uniform::from(-half_size.y..half_size.y);
         let pos = Vec2 {
             x: x_dist.sample(&mut rng),
             y: y_dist.sample(&mut rng),
