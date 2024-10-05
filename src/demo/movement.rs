@@ -18,11 +18,11 @@ use bevy::{prelude::*, window::PrimaryWindow};
 use crate::AppSet;
 
 pub(super) fn plugin(app: &mut App) {
-    app.register_type::<(MovementController, ScreenWrap)>();
+    app.register_type::<(MovementController, ScreenWrap, ScreenBounce)>();
 
     app.add_systems(
         Update,
-        (apply_movement, apply_screen_wrap)
+        (apply_movement, apply_screen_wrap, apply_screen_bounce)
             .chain()
             .in_set(AppSet::Update),
     );
@@ -37,6 +37,9 @@ pub struct MovementController {
     /// The direction the character wants to move in.
     pub intent: Vec2,
 
+    /// Possible adjustments applied after the initial intent direction.
+    pub intent_modifier: Vec2,
+
     /// Maximum speed in world units per second.
     /// 1 world unit = 1 pixel when using the default 2D camera and no physics
     /// engine.
@@ -47,6 +50,7 @@ impl Default for MovementController {
     fn default() -> Self {
         Self {
             intent: Vec2::ZERO,
+            intent_modifier: Vec2::ONE,
             // 400 pixels per second is a nice default, but we can still vary this per character.
             max_speed: 400.0,
         }
@@ -58,7 +62,7 @@ fn apply_movement(
     mut movement_query: Query<(&MovementController, &mut Transform)>,
 ) {
     for (controller, mut transform) in &mut movement_query {
-        let velocity = controller.max_speed * controller.intent;
+        let velocity = controller.max_speed * controller.intent * controller.intent_modifier;
         transform.translation += velocity.extend(0.0) * time.delta_seconds();
     }
 }
@@ -80,5 +84,36 @@ fn apply_screen_wrap(
         let position = transform.translation.xy();
         let wrapped = (position + half_size).rem_euclid(size) - half_size;
         transform.translation = wrapped.extend(transform.translation.z);
+    }
+}
+
+#[derive(Component, Reflect)]
+#[reflect(Component)]
+pub struct ScreenBounce;
+
+fn apply_screen_bounce(
+    window_query: Query<&Window, With<PrimaryWindow>>,
+    mut query: Query<(&mut MovementController, &Transform), With<ScreenBounce>>,
+) {
+    let Ok(window) = window_query.get_single() else {
+        return;
+    };
+    let size = window.size();
+    let half_size = size / 2.0;
+
+    for (mut movement, transform) in &mut query {
+        let position = transform.translation.xy();
+        if position.x > half_size.x {
+            movement.intent_modifier.x = -1.0;
+        }
+        if position.x < -half_size.x {
+            movement.intent_modifier.x = 1.0;
+        }
+        if position.y > half_size.y {
+            movement.intent_modifier.y = -1.0;
+        }
+        if position.y < -half_size.y {
+            movement.intent_modifier.y = 1.0;
+        }
     }
 }

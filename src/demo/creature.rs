@@ -14,8 +14,7 @@ use bevy::{
 use crate::{
     asset_tracking::LoadResource,
     demo::{
-        animation::CreatureAnimation,
-        movement::{MovementController, ScreenWrap},
+        animation::CreatureAnimation, movement::MovementController, movement::ScreenBounce,
         movement_pattern::MovementPattern,
     },
     screens::{GameScore, Screen},
@@ -125,7 +124,9 @@ fn spawn_creature(
             ..default()
         },
         config.movement,
-        ScreenWrap,
+        // Either use ScreenWrap or ScreenBounce
+        // ScreenWrap,
+        ScreenBounce,
         creature_animation,
         StateScoped(Screen::Gameplay),
     ));
