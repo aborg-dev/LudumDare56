@@ -4,6 +4,8 @@ use bevy::prelude::*;
 use bevy::window::PrimaryWindow;
 use rand::distributions::{Distribution, Uniform};
 
+use crate::asset_tracking::LoadResource;
+use crate::audio::SoundEffect;
 use crate::demo::creature::SpawnCreature;
 use crate::demo::movement_pattern::MovementPattern;
 use crate::screens::Screen;
@@ -24,6 +26,21 @@ struct WaveCounter {
     wave: u32,
 }
 
+#[derive(Resource, Asset, Reflect, Clone)]
+pub struct WaveSound {
+    #[dependency]
+    sound: Handle<AudioSource>,
+}
+
+impl FromWorld for WaveSound {
+    fn from_world(world: &mut World) -> Self {
+        let assets = world.resource::<AssetServer>();
+        Self {
+            sound: assets.load("audio/sound_effects/wave_start.ogg"),
+        }
+    }
+}
+
 impl Default for SpawnTimer {
     fn default() -> Self {
         Self(Timer::new(SPAWN_DURATION, TimerMode::Repeating))
@@ -32,6 +49,7 @@ impl Default for SpawnTimer {
 
 pub(super) fn plugin(app: &mut App) {
     app.register_type::<SpawnTimer>();
+    app.load_resource::<WaveSound>();
     app.add_systems(OnEnter(Screen::Gameplay), add_resources);
     app.add_systems(OnExit(Screen::Gameplay), remove_resources);
 
@@ -69,12 +87,21 @@ fn check_spawn_timer(
     mut wave_counter: ResMut<WaveCounter>,
     mut commands: Commands,
     window_query: Query<&Window, With<PrimaryWindow>>,
+    sound: Res<WaveSound>,
 ) {
     let Ok(window) = window_query.get_single() else {
         return;
     };
 
     if timer.0.just_finished() || wave_counter.wave == 0 {
+        commands.spawn((
+            AudioBundle {
+                source: sound.sound.clone(),
+                settings: PlaybackSettings::DESPAWN,
+            },
+            SoundEffect,
+        ));
+
         wave_counter.wave += 1;
         let mut rng = &mut rand::thread_rng();
         let size = window.size() - 256.0;
