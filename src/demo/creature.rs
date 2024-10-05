@@ -13,8 +13,10 @@ use bevy::{
 
 use crate::{
     asset_tracking::LoadResource,
+    audio::SoundEffect,
     demo::{
-        animation::CreatureAnimation, movement::MovementController, movement::ScreenBounce,
+        animation::CreatureAnimation,
+        movement::{MovementController, ScreenBounce},
         movement_pattern::MovementPattern,
     },
     screens::{GameScore, Screen},
@@ -43,6 +45,7 @@ fn process_clicks_on_creatures(
     creatures: Query<(Entity, &Transform), With<Creature>>,
     mut game_score: ResMut<GameScore>,
     mut commands: Commands,
+    creature_assets: Res<CreatureAssets>,
 ) {
     if click_controller.position.is_none() {
         return;
@@ -57,6 +60,13 @@ fn process_clicks_on_creatures(
         if bounding_box.contains(p) {
             commands.entity(entity).despawn();
             game_score.score += 1;
+            commands.spawn((
+                AudioBundle {
+                    source: creature_assets.catch.clone(),
+                    settings: PlaybackSettings::DESPAWN,
+                },
+                SoundEffect,
+            ));
         }
     }
 }
@@ -167,6 +177,8 @@ pub struct CreatureAssets {
     pub ducky: Handle<Image>,
     #[dependency]
     pub steps: Vec<Handle<AudioSource>>,
+    #[dependency]
+    pub catch: Handle<AudioSource>,
 }
 
 impl CreatureAssets {
@@ -175,6 +187,7 @@ impl CreatureAssets {
     pub const PATH_STEP_2: &'static str = "audio/sound_effects/step2.ogg";
     pub const PATH_STEP_3: &'static str = "audio/sound_effects/step3.ogg";
     pub const PATH_STEP_4: &'static str = "audio/sound_effects/step4.ogg";
+    pub const PATH_CATCH: &'static str = "audio/sound_effects/catch.ogg";
 }
 
 impl FromWorld for CreatureAssets {
@@ -194,6 +207,7 @@ impl FromWorld for CreatureAssets {
                 assets.load(CreatureAssets::PATH_STEP_3),
                 assets.load(CreatureAssets::PATH_STEP_4),
             ],
+            catch: assets.load(CreatureAssets::PATH_CATCH),
         }
     }
 }
