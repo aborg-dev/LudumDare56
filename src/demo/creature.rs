@@ -23,6 +23,12 @@ use crate::{
     AppSet,
 };
 
+use super::{movement::ScreenWrap, movement_pattern::MovementPatternDefinition};
+
+const fn default_shrink_duration() -> u64 {
+    10_000
+}
+
 pub(super) fn plugin(app: &mut App) {
     app.register_type::<Creature>();
     app.load_resource::<CreatureAssets>();
@@ -94,6 +100,22 @@ pub struct SpawnCreature {
     pub pos: Vec2,
     pub movement: MovementPattern,
     pub shrink_duration: Duration,
+    /// true: wraps on the screen edge
+    /// false (default): bounces on the screen edge
+    pub wrap: bool,
+}
+
+/// A command to spawn the player character.
+#[derive(Debug, Clone, Reflect, serde::Deserialize)]
+pub struct CreatureDefinition {
+    pub max_speed: f32,
+    /// None is turned into a random position on screen
+    pub pos: Option<Vec2>,
+    pub movement: MovementPatternDefinition,
+    #[serde(default = "default_shrink_duration")]
+    pub shrink_duration_ms: u64,
+    #[serde(default)]
+    pub wrap: bool,
 }
 
 impl Command for SpawnCreature {
@@ -117,7 +139,7 @@ fn spawn_creature(
     let texture_atlas_layout = texture_atlas_layouts.add(layout);
     let creature_animation = CreatureAnimation::new(config.shrink_duration);
 
-    commands.spawn((
+    let mut entity = commands.spawn((
         Name::new("Creature"),
         Creature,
         SpriteBundle {
@@ -135,12 +157,14 @@ fn spawn_creature(
             ..default()
         },
         config.movement,
-        // Either use ScreenWrap or ScreenBounce
-        // ScreenWrap,
-        ScreenBounce,
         creature_animation,
         StateScoped(Screen::Gameplay),
     ));
+    if config.wrap {
+        entity.insert(ScreenWrap);
+    } else {
+        entity.insert(ScreenBounce);
+    }
 }
 
 #[derive(Resource, Reflect, Clone, Default)]

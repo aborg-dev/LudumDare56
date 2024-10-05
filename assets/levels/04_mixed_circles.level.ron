@@ -1,0 +1,20 @@
+LevelDefinition(
+    creatures: [
+        CreatureDefinition (
+            max_speed: 800.0,
+            movement: Constant ( speed: Vec2(0.53, 0.25) )
+        ),
+        CreatureDefinition (
+            max_speed: 1500.0,
+            movement: Periodic ( max_speed: Vec2(-0.7, -0.3), duration_ms: 1000 )
+        ),
+        CreatureDefinition (
+            max_speed: 1500.0,
+            movement: Circle ( radius: 0.5, duration_ms: 4000 )
+        ),
+        CreatureDefinition (
+            max_speed: 1500.0,
+            movement: Circle ( radius: 0.05, duration_ms: 1000 )
+        ),
+    ]
+)

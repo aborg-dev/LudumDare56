@@ -5,6 +5,7 @@ use bevy::prelude::{Component, IntoSystemConfigs, Query, Res};
 use bevy::reflect::Reflect;
 use bevy::time::{Time, Timer};
 use core::f32;
+use std::time::Duration;
 
 use crate::AppSet;
 
@@ -13,11 +14,18 @@ use super::movement::MovementController;
 /// A specific pattern for how entities move.
 ///
 /// The entity requires a `MovementController` for the moving to work.
-#[derive(Debug, Component, Reflect)]
+#[derive(Debug, Component, Reflect, Clone)]
 pub enum MovementPattern {
     Constant { speed: Vec2 },
     Periodic { timer: Timer, max_speed: Vec2 },
     Circle { timer: Timer, radius: f32 },
+}
+
+#[derive(Debug, Clone, Reflect, serde::Deserialize)]
+pub enum MovementPatternDefinition {
+    Constant { speed: Vec2 },
+    Periodic { duration_ms: u64, max_speed: Vec2 },
+    Circle { duration_ms: u64, radius: f32 },
 }
 
 pub(super) fn plugin(app: &mut App) {
@@ -63,6 +71,36 @@ fn update_timer(time: Res<Time>, mut query: Query<&mut MovementPattern>) {
             | MovementPattern::Circle { ref mut timer, .. } => {
                 timer.tick(delta);
             }
+        }
+    }
+}
+
+impl MovementPatternDefinition {
+    pub fn build(&self) -> MovementPattern {
+        match self {
+            MovementPatternDefinition::Constant { speed } => {
+                MovementPattern::Constant { speed: *speed }
+            }
+            MovementPatternDefinition::Periodic {
+                duration_ms,
+                max_speed,
+            } => MovementPattern::Periodic {
+                timer: Timer::new(
+                    Duration::from_millis(*duration_ms),
+                    bevy::time::TimerMode::Repeating,
+                ),
+                max_speed: *max_speed,
+            },
+            MovementPatternDefinition::Circle {
+                duration_ms,
+                radius,
+            } => MovementPattern::Circle {
+                timer: Timer::new(
+                    Duration::from_millis(*duration_ms),
+                    bevy::time::TimerMode::Repeating,
+                ),
+                radius: *radius,
+            },
         }
     }
 }

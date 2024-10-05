@@ -2,18 +2,18 @@
 
 use bevy::prelude::*;
 use bevy::window::PrimaryWindow;
+use bevy_common_assets::ron::RonAssetPlugin;
 use rand::distributions::{Distribution, Uniform};
 
 use crate::asset_tracking::LoadResource;
 use crate::audio::SoundEffect;
+use crate::demo::creature::CreatureDefinition;
 use crate::demo::creature::SpawnCreature;
-use crate::demo::movement_pattern::MovementPattern;
 use crate::screens::Screen;
 use crate::AppSet;
 
 use std::time::Duration;
 
-const SHRINK_DURATION: Duration = Duration::from_secs(10);
 const SPAWN_DURATION: Duration = Duration::from_secs(5);
 
 #[derive(Resource, Debug, Clone, PartialEq, Reflect)]
@@ -32,6 +32,41 @@ pub struct WaveSound {
     sound: Handle<AudioSource>,
 }
 
+#[derive(Debug, Resource, Clone, Reflect, Asset)]
+pub struct Levels {
+    /// The levels that run through when we play the game normally. (As opposed
+    /// to loading other levels in dev mode.)
+    #[dependency]
+    game_levels: Vec<Handle<LevelDefinition>>,
+}
+
+/// A definition of a single level, loaded from a RON file or directly defined in Rust
+#[derive(Debug, Clone, Reflect, Asset, serde::Deserialize)]
+pub struct LevelDefinition {
+    creatures: Vec<CreatureDefinition>,
+}
+
+impl FromWorld for Levels {
+    fn from_world(world: &mut World) -> Self {
+        let assets = world.resource::<AssetServer>();
+        // To add more levels for the game, create a file in assets/levels/ that
+        // ends with .level.rin and add its path here.
+        let levels = [
+            "levels/00_easy_start.level.ron",
+            "levels/01_more_easy_creatures.level.ron",
+            "levels/02_few_periodic.level.ron",
+            "levels/03_mixed_periodic.level.ron",
+            "levels/04_mixed_circles.level.ron",
+        ];
+        Levels {
+            game_levels: levels
+                .into_iter()
+                .map(|path| assets.load::<LevelDefinition>(path))
+                .collect::<Vec<_>>(),
+        }
+    }
+}
+
 impl FromWorld for WaveSound {
     fn from_world(world: &mut World) -> Self {
         let assets = world.resource::<AssetServer>();
@@ -48,8 +83,12 @@ impl Default for SpawnTimer {
 }
 
 pub(super) fn plugin(app: &mut App) {
+    // Configure that ***.level.ron files loaded as assets map to a `LevelDefinition`.
+    app.add_plugins(RonAssetPlugin::<LevelDefinition>::new(&["level.ron"]));
+
     app.register_type::<SpawnTimer>();
     app.load_resource::<WaveSound>();
+    app.load_resource::<Levels>();
     app.add_systems(OnEnter(Screen::Gameplay), add_resources);
     app.add_systems(OnExit(Screen::Gameplay), remove_resources);
 
@@ -81,8 +120,11 @@ fn tick_spawn_timer(time: Res<Time>, mut timer: ResMut<SpawnTimer>) {
 fn check_spawn_timer(
     timer: ResMut<SpawnTimer>,
     mut wave_counter: ResMut<WaveCounter>,
+    mut next_screen: ResMut<NextState<Screen>>,
     mut commands: Commands,
     window_query: Query<&Window, With<PrimaryWindow>>,
+    level_handles: Res<Levels>,
+    levels: Res<Assets<LevelDefinition>>,
     sound: Res<WaveSound>,
 ) {
     let Ok(window) = window_query.get_single() else {
@@ -90,6 +132,17 @@ fn check_spawn_timer(
     };
 
     if timer.0.just_finished() || wave_counter.wave == 0 {
+        let Some(level_handle) = level_handles.game_levels.get(wave_counter.wave as usize) else {
+            // last level done
+            next_screen.set(Screen::Score);
+            return;
+        };
+        let Some(level) = levels.get(level_handle) else {
+            // level not loaded, yet
+            println!("Loading order wrong, level {level_handle:?} has not been loaded when it should have been spawned");
+            return;
+        };
+
         commands.spawn((
             AudioBundle {
                 source: sound.sound.clone(),
@@ -104,71 +157,18 @@ fn check_spawn_timer(
         let half_size = size / 2.0;
         let x_dist = Uniform::from(-half_size.x..half_size.x);
         let y_dist = Uniform::from(-half_size.y..half_size.y);
-        let dist = Uniform::new(-1.0, 1.0);
+        let mut random_screen_pos = || Vec2 {
+            x: x_dist.sample(&mut rng),
+            y: y_dist.sample(&mut rng),
+        };
 
-        // Add either a constant or a periodic movement each wave
-        let num_constant_movement: u32 = 3 + (wave_counter.wave + 1) / 2;
-        let num_periodic_movement: u32 = 2 + wave_counter.wave / 2;
-        // Add a circular movement every third round
-        let num_circle_movement: u32 = wave_counter.wave / 3;
-
-        let min_radius = 0.25;
-        let max_radius = 1.0 + wave_counter.wave as f32;
-
-        for _ in 0..num_constant_movement {
-            let pos = Vec2 {
-                x: x_dist.sample(&mut rng),
-                y: y_dist.sample(&mut rng),
-            };
-
-            let speed = Vec2 {
-                x: dist.sample(rng),
-                y: dist.sample(rng),
-            }
-            .normalize();
+        for creature in &level.creatures {
             commands.add(SpawnCreature {
-                max_speed: 400.0,
-                pos,
-                movement: MovementPattern::Constant { speed },
-                shrink_duration: SHRINK_DURATION,
-            });
-        }
-        for _ in 0..num_periodic_movement {
-            let pos = Vec2 {
-                x: x_dist.sample(&mut rng),
-                y: y_dist.sample(&mut rng),
-            };
-
-            let max_speed = Vec2 {
-                x: dist.sample(rng),
-                y: dist.sample(rng),
-            }
-            .normalize()
-                * 3.0;
-            commands.add(SpawnCreature {
-                max_speed: 400.0,
-                pos,
-                movement: MovementPattern::Periodic {
-                    timer: Timer::new(Duration::from_millis(500), TimerMode::Repeating),
-                    max_speed,
-                },
-                shrink_duration: SHRINK_DURATION,
-            });
-        }
-        for _ in 0..num_circle_movement {
-            let pos = Vec2 {
-                x: x_dist.sample(&mut rng),
-                y: y_dist.sample(&mut rng),
-            };
-
-            commands.add(SpawnCreature {
-                max_speed: 400.0,
-                pos,
-                movement: MovementPattern::Circle {
-                    timer: Timer::new(Duration::from_millis(1500), TimerMode::Repeating),
-                    radius: (dist.sample(rng) * max_radius).max(min_radius),
-                },
-                shrink_duration: SHRINK_DURATION,
+                max_speed: creature.max_speed,
+                pos: creature.pos.unwrap_or_else(&mut random_screen_pos),
+                movement: creature.movement.build(),
+                shrink_duration: Duration::from_millis(creature.shrink_duration_ms),
+                wrap: creature.wrap,
             });
         }
     }
