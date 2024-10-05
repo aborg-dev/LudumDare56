@@ -47,7 +47,7 @@ fn process_clicks_on_creatures(
     for (entity, transform) in &creatures {
         let p = click_controller.position.unwrap();
         let half_size = 32.0 * 8.0 / 2.0;
-        let aabb2d = Aabb2d::new(transform.translation.truncate(), Vec2::splat(half_size));
+        let aabb2d = Aabb2d::new(transform.translation.xy(), Vec2::splat(half_size));
         if aabb2d.closest_point(p) == p {
             commands.entity(entity).despawn();
         }
