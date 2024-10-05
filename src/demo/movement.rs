@@ -103,17 +103,17 @@ fn apply_screen_bounce(
 
     for (mut movement, transform) in &mut query {
         let position = transform.translation.xy();
-        if position.x > half_size.x {
-            movement.intent_modifier.x = -1.0;
+        if position.x.abs() > half_size.x {
+            // x is out of border, we have to set the intent modifier such that
+            // it goes away from the edge after it is multiplied with the
+            // original intent FIXME: This is hacky, can we do better? The
+            // problem is how to combine arbitrary intent changes based on
+            // pattern and make it orthogonal to the bouncing behavior. Maybe
+            // each pattern should define its own bouncing.
+            movement.intent_modifier.x = movement.intent.x.signum() * -position.x.signum();
         }
-        if position.x < -half_size.x {
-            movement.intent_modifier.x = 1.0;
-        }
-        if position.y > half_size.y {
-            movement.intent_modifier.y = -1.0;
-        }
-        if position.y < -half_size.y {
-            movement.intent_modifier.y = 1.0;
+        if position.y.abs() > half_size.y {
+            movement.intent_modifier.y = movement.intent.y.signum() * -position.y.signum();
         }
     }
 }
