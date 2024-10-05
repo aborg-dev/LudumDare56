@@ -15,6 +15,7 @@ use crate::{
     demo::{
         animation::CreatureAnimation,
         movement::{MovementController, ScreenWrap},
+        movement_pattern::MovementPattern,
     },
     screens::Screen,
     AppSet,
@@ -64,6 +65,7 @@ pub struct SpawnCreature {
     /// See [`MovementController::max_speed`].
     pub max_speed: f32,
     pub pos: Vec2,
+    pub movement: MovementPattern,
 }
 
 impl Command for SpawnCreature {
@@ -104,6 +106,7 @@ fn spawn_creature(
             max_speed: config.max_speed,
             ..default()
         },
+        config.movement,
         ScreenWrap,
         player_animation,
         StateScoped(Screen::Gameplay),

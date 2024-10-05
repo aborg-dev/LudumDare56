@@ -5,6 +5,7 @@ use bevy::{ecs::world::Command, prelude::*};
 use rand::distributions::{Distribution, Uniform};
 
 use crate::demo::creature::SpawnCreature;
+use crate::demo::movement_pattern::MovementPattern;
 use crate::screens::Screen;
 use crate::AppSet;
 
@@ -43,6 +44,7 @@ pub fn spawn_level(world: &mut World) {
     SpawnCreature {
         max_speed: 400.0,
         pos: Vec2 { x: 0.0, y: 0.0 },
+        movement: MovementPattern::Constant(Vec2 { x: 1.0, y: 0.5 }),
     }
     .apply(world);
 }
@@ -72,9 +74,16 @@ fn check_spawn_timer(
             x: x_dist.sample(&mut rng),
             y: y_dist.sample(&mut rng),
         };
+
+        let dist = Uniform::new(-1.0, 1.0);
+        let direction = Vec2 {
+            x: dist.sample(rng),
+            y: dist.sample(rng),
+        };
         commands.add(SpawnCreature {
             max_speed: 400.0,
             pos,
+            movement: MovementPattern::Constant(direction),
         });
     }
 }

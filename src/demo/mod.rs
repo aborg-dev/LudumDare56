@@ -9,6 +9,7 @@ mod animation;
 pub mod creature;
 pub mod level;
 mod movement;
+pub mod movement_pattern;
 
 pub(super) fn plugin(app: &mut App) {
     app.add_plugins((
@@ -16,5 +17,6 @@ pub(super) fn plugin(app: &mut App) {
         movement::plugin,
         creature::plugin,
         level::plugin,
+        movement_pattern::plugin,
     ));
 }
