@@ -9,9 +9,17 @@ mod title;
 
 use bevy::prelude::*;
 
+#[derive(Resource, Reflect, Clone, Default)]
+pub struct GameScore {
+    pub score: u32,
+}
+
 pub(super) fn plugin(app: &mut App) {
     app.init_state::<Screen>();
     app.enable_state_scoped_entities::<Screen>();
+
+    // Accessed in gameplay and score screen.
+    app.insert_resource(GameScore::default());
 
     app.add_plugins((
         credits::plugin,

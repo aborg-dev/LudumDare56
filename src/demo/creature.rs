@@ -18,21 +18,14 @@ use crate::{
         movement::{MovementController, ScreenWrap},
         movement_pattern::MovementPattern,
     },
-    screens::Screen,
+    screens::{GameScore, Screen},
     AppSet,
 };
-
-#[derive(Resource, Reflect, Clone, Default)]
-pub struct GameScore {
-    pub score: u32,
-}
 
 pub(super) fn plugin(app: &mut App) {
     app.register_type::<Creature>();
     app.load_resource::<CreatureAssets>();
     app.insert_resource(ClickController::default());
-
-    app.insert_resource(GameScore::default());
 
     // Record directional input as movement controls.
     app.add_systems(
@@ -74,7 +67,7 @@ fn end_game_on_too_many_creatures(
     mut next_screen: ResMut<NextState<Screen>>,
 ) {
     let count = creatures.iter().count();
-    if count > 10 {
+    if count > 5 {
         next_screen.set(Screen::Score);
     }
 }
