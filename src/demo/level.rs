@@ -38,8 +38,9 @@ impl Default for SpawnTimer {
 
 pub(super) fn plugin(app: &mut App) {
     app.register_type::<SpawnTimer>();
-    app.init_resource::<SpawnTimer>();
-    app.init_resource::<WaveCounter>();
+    app.add_systems(OnEnter(Screen::Gameplay), add_resources);
+    app.add_systems(OnExit(Screen::Gameplay), remove_resources);
+
     app.add_systems(
         Update,
         (
@@ -48,6 +49,16 @@ pub(super) fn plugin(app: &mut App) {
         )
             .run_if(in_state(Screen::Gameplay)),
     );
+}
+
+fn add_resources(mut commands: Commands) {
+    commands.insert_resource(SpawnTimer::default());
+    commands.insert_resource(WaveCounter::default());
+}
+
+fn remove_resources(mut commands: Commands) {
+    commands.remove_resource::<SpawnTimer>();
+    commands.remove_resource::<WaveCounter>();
 }
 
 /// A [`Command`] to spawn the level.
