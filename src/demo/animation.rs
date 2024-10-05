@@ -5,14 +5,9 @@
 //! - [Timers](https://github.com/bevyengine/bevy/blob/latest/examples/time/timers.rs)
 
 use bevy::prelude::*;
-use rand::prelude::*;
 use std::time::Duration;
 
-use crate::{
-    audio::SoundEffect,
-    demo::{creature::CreatureAssets, movement::MovementController},
-    AppSet,
-};
+use crate::{demo::creature::CreatureAssets, AppSet};
 
 pub(super) fn plugin(app: &mut App) {
     // Animate and play sound effects based on controls.
@@ -21,11 +16,7 @@ pub(super) fn plugin(app: &mut App) {
         Update,
         (
             update_animation_timer.in_set(AppSet::TickTimers),
-            (
-                update_animation_movement,
-                update_animation_atlas,
-                trigger_step_sound_effect,
-            )
+            (update_animation_shrinking)
                 .chain()
                 .run_if(resource_exists::<CreatureAssets>)
                 .in_set(AppSet::Update),
@@ -33,22 +24,10 @@ pub(super) fn plugin(app: &mut App) {
     );
 }
 
-/// Update the sprite direction and animation state (idling/walking).
-fn update_animation_movement(
-    mut player_query: Query<(&MovementController, &mut Sprite, &mut CreatureAnimation)>,
-) {
-    for (controller, mut sprite, mut animation) in &mut player_query {
-        let dx = controller.intent.x;
-        if dx != 0.0 {
-            sprite.flip_x = dx < 0.0;
-        }
-
-        let animation_state = if controller.intent == Vec2::ZERO {
-            CreatureAnimationState::Idling
-        } else {
-            CreatureAnimationState::Walking
-        };
-        animation.update_state(animation_state);
+fn update_animation_shrinking(mut creature_query: Query<(&mut Transform, &mut CreatureAnimation)>) {
+    for (mut transform, animation) in &mut creature_query {
+        let shrink_factor = (1.0 - animation.timer.elapsed_secs() / 10.0).max(0.1);
+        transform.scale = Vec2::splat(8.0 * shrink_factor).extend(1.0);
     }
 }
 
@@ -59,119 +38,23 @@ fn update_animation_timer(time: Res<Time>, mut query: Query<&mut CreatureAnimati
     }
 }
 
-/// Update the texture atlas to reflect changes in the animation.
-fn update_animation_atlas(mut query: Query<(&CreatureAnimation, &mut TextureAtlas)>) {
-    for (animation, mut atlas) in &mut query {
-        if animation.changed() {
-            atlas.index = animation.get_atlas_index();
-        }
-    }
-}
-
-/// If the player is moving, play a step sound effect synchronized with the
-/// animation.
-fn trigger_step_sound_effect(
-    mut commands: Commands,
-    player_assets: Res<CreatureAssets>,
-    mut step_query: Query<&CreatureAnimation>,
-) {
-    for animation in &mut step_query {
-        if animation.state == CreatureAnimationState::Walking
-            && animation.changed()
-            && (animation.frame == 2 || animation.frame == 5)
-        {
-            let rng = &mut rand::thread_rng();
-            let random_step = player_assets.steps.choose(rng).unwrap();
-            commands.spawn((
-                AudioBundle {
-                    source: random_step.clone(),
-                    settings: PlaybackSettings::DESPAWN,
-                },
-                SoundEffect,
-            ));
-        }
-    }
-}
-
 /// Component that tracks player's animation state.
 /// It is tightly bound to the texture atlas we use.
 #[derive(Component, Reflect)]
 #[reflect(Component)]
 pub struct CreatureAnimation {
     timer: Timer,
-    frame: usize,
-    state: CreatureAnimationState,
-}
-
-#[derive(Reflect, PartialEq)]
-pub enum CreatureAnimationState {
-    Idling,
-    Walking,
 }
 
 impl CreatureAnimation {
-    /// The number of idle frames.
-    const IDLE_FRAMES: usize = 2;
-    /// The duration of each idle frame.
-    const IDLE_INTERVAL: Duration = Duration::from_millis(500);
-    /// The number of walking frames.
-    const WALKING_FRAMES: usize = 6;
-    /// The duration of each walking frame.
-    const WALKING_INTERVAL: Duration = Duration::from_millis(50);
-
-    fn idling() -> Self {
-        Self {
-            timer: Timer::new(Self::IDLE_INTERVAL, TimerMode::Repeating),
-            frame: 0,
-            state: CreatureAnimationState::Idling,
-        }
-    }
-
-    fn walking() -> Self {
-        Self {
-            timer: Timer::new(Self::WALKING_INTERVAL, TimerMode::Repeating),
-            frame: 0,
-            state: CreatureAnimationState::Walking,
-        }
-    }
-
     pub fn new() -> Self {
-        Self::idling()
+        Self {
+            timer: Timer::from_seconds(10.0, TimerMode::Once),
+        }
     }
 
     /// Update animation timers.
     pub fn update_timer(&mut self, delta: Duration) {
         self.timer.tick(delta);
-        if !self.timer.finished() {
-            return;
-        }
-        self.frame = (self.frame + 1)
-            % match self.state {
-                CreatureAnimationState::Idling => Self::IDLE_FRAMES,
-                CreatureAnimationState::Walking => Self::WALKING_FRAMES,
-            };
-    }
-
-    /// Update animation state if it changes.
-    pub fn update_state(&mut self, state: CreatureAnimationState) {
-        if self.state != state {
-            match state {
-                CreatureAnimationState::Idling => *self = Self::idling(),
-                CreatureAnimationState::Walking => *self = Self::walking(),
-            }
-        }
-    }
-
-    /// Whether animation changed this tick.
-    pub fn changed(&self) -> bool {
-        self.timer.finished()
-    }
-
-    /// Return sprite index in the atlas.
-    pub fn get_atlas_index(&self) -> usize {
-        match self.state {
-            CreatureAnimationState::Idling => self.frame,
-            CreatureAnimationState::Walking => 6 + self.frame,
-        }
     }
 }

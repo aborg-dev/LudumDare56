@@ -87,7 +87,7 @@ fn spawn_creature(
     // this example: https://github.com/bevyengine/bevy/blob/latest/examples/2d/texture_atlas.rs
     let layout = TextureAtlasLayout::from_grid(UVec2::splat(32), 6, 2, Some(UVec2::splat(1)), None);
     let texture_atlas_layout = texture_atlas_layouts.add(layout);
-    let player_animation = CreatureAnimation::new();
+    let creature_animation = CreatureAnimation::new();
 
     commands.spawn((
         Name::new("Creature"),
@@ -100,7 +100,7 @@ fn spawn_creature(
         },
         TextureAtlas {
             layout: texture_atlas_layout.clone(),
-            index: player_animation.get_atlas_index(),
+            index: 1,
         },
         MovementController {
             max_speed: config.max_speed,
@@ -108,7 +108,7 @@ fn spawn_creature(
         },
         config.movement,
         ScreenWrap,
-        player_animation,
+        creature_animation,
         StateScoped(Screen::Gameplay),
     ));
 }
