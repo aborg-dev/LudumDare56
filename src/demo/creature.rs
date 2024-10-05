@@ -6,7 +6,6 @@ use std::time::Duration;
 
 use bevy::{
     ecs::{system::RunSystemOnce as _, world::Command},
-    math::bounding::Aabb2d,
     prelude::*,
     render::texture::{ImageLoaderSettings, ImageSampler},
     window::PrimaryWindow,
@@ -59,9 +58,11 @@ fn process_clicks_on_creatures(
 
     for (entity, transform) in &creatures {
         let p = click_controller.position.unwrap();
-        let half_size = 32.0 * 8.0 / 2.0;
-        let aabb2d = Aabb2d::new(transform.translation.xy(), Vec2::splat(half_size));
-        if aabb2d.closest_point(p) == p {
+
+        let scaled_image_dimension = Vec2::splat(32.0) * transform.scale.truncate();
+        let bounding_box =
+            Rect::from_center_size(transform.translation.truncate(), scaled_image_dimension);
+        if bounding_box.contains(p) {
             commands.entity(entity).despawn();
             game_score.score += 1;
         }
