@@ -4,7 +4,7 @@
 use bevy::prelude::*;
 
 use crate::{
-    demo::player::PlayerAssets,
+    demo::creature::CreatureAssets,
     screens::{credits::CreditsMusic, gameplay::GameplayMusic, Screen},
     theme::{interaction::InteractionAssets, prelude::*},
 };
@@ -35,7 +35,7 @@ fn continue_to_title_screen(mut next_screen: ResMut<NextState<Screen>>) {
 }
 
 fn all_assets_loaded(
-    player_assets: Option<Res<PlayerAssets>>,
+    player_assets: Option<Res<CreatureAssets>>,
     interaction_assets: Option<Res<InteractionAssets>>,
     credits_music: Option<Res<CreditsMusic>>,
     gameplay_music: Option<Res<GameplayMusic>>,

@@ -4,14 +4,16 @@
 
 use bevy::{
     ecs::{system::RunSystemOnce as _, world::Command},
+    math::bounding::Aabb2d,
     prelude::*,
     render::texture::{ImageLoaderSettings, ImageSampler},
+    window::PrimaryWindow,
 };
 
 use crate::{
     asset_tracking::LoadResource,
     demo::{
-        animation::PlayerAnimation,
+        animation::CreatureAnimation,
         movement::{MovementController, ScreenWrap},
     },
     screens::Screen,
@@ -19,37 +21,61 @@ use crate::{
 };
 
 pub(super) fn plugin(app: &mut App) {
-    app.register_type::<Player>();
-    app.load_resource::<PlayerAssets>();
+    app.register_type::<Creature>();
+    app.load_resource::<CreatureAssets>();
+    app.insert_resource(ClickController::default());
 
     // Record directional input as movement controls.
     app.add_systems(
         Update,
-        record_player_directional_input.in_set(AppSet::RecordInput),
+        (
+            record_player_click_input.in_set(AppSet::RecordInput),
+            process_clicks_on_creatures.in_set(AppSet::Update),
+        ),
     );
+}
+
+fn process_clicks_on_creatures(
+    click_controller: Res<ClickController>,
+    creatures: Query<(Entity, &Transform), With<Creature>>,
+    mut commands: Commands,
+) {
+    if click_controller.position.is_none() {
+        return;
+    }
+
+    for (entity, transform) in &creatures {
+        let p = click_controller.position.unwrap();
+        let half_size = 32.0 * 8.0 / 2.0;
+        let aabb2d = Aabb2d::new(transform.translation.truncate(), Vec2::splat(half_size));
+        if aabb2d.closest_point(p) == p {
+            commands.entity(entity).despawn();
+        }
+    }
 }
 
 #[derive(Component, Debug, Clone, Copy, PartialEq, Eq, Default, Reflect)]
 #[reflect(Component)]
-pub struct Player;
+pub struct Creature;
 
 /// A command to spawn the player character.
 #[derive(Debug)]
-pub struct SpawnPlayer {
+pub struct SpawnCreature {
     /// See [`MovementController::max_speed`].
     pub max_speed: f32,
+    pub pos: Vec2,
 }
 
-impl Command for SpawnPlayer {
+impl Command for SpawnCreature {
     fn apply(self, world: &mut World) {
         world.run_system_once_with(self, spawn_player);
     }
 }
 
 fn spawn_player(
-    In(config): In<SpawnPlayer>,
+    In(config): In<SpawnCreature>,
     mut commands: Commands,
-    player_assets: Res<PlayerAssets>,
+    player_assets: Res<CreatureAssets>,
     mut texture_atlas_layouts: ResMut<Assets<TextureAtlasLayout>>,
 ) {
     // A texture atlas is a way to split one image with a grid into multiple
@@ -59,14 +85,15 @@ fn spawn_player(
     // this example: https://github.com/bevyengine/bevy/blob/latest/examples/2d/texture_atlas.rs
     let layout = TextureAtlasLayout::from_grid(UVec2::splat(32), 6, 2, Some(UVec2::splat(1)), None);
     let texture_atlas_layout = texture_atlas_layouts.add(layout);
-    let player_animation = PlayerAnimation::new();
+    let player_animation = CreatureAnimation::new();
 
     commands.spawn((
-        Name::new("Player"),
-        Player,
+        Name::new("Creature"),
+        Creature,
         SpriteBundle {
             texture: player_assets.ducky.clone(),
-            transform: Transform::from_scale(Vec2::splat(8.0).extend(1.0)),
+            transform: Transform::from_scale(Vec2::splat(8.0).extend(1.0))
+                .with_translation(config.pos.extend(1.0)),
             ..Default::default()
         },
         TextureAtlas {
@@ -83,38 +110,35 @@ fn spawn_player(
     ));
 }
 
-fn record_player_directional_input(
-    input: Res<ButtonInput<KeyCode>>,
-    mut controller_query: Query<&mut MovementController, With<Player>>,
+#[derive(Resource, Reflect, Clone, Default)]
+pub struct ClickController {
+    pub position: Option<Vec2>,
+}
+
+fn record_player_click_input(
+    input: Res<ButtonInput<MouseButton>>,
+    touches_input: Res<Touches>,
+    window_query: Query<&Window, With<PrimaryWindow>>,
+    camera_query: Query<(&Camera, &GlobalTransform)>,
+    mut click_controller: ResMut<ClickController>,
 ) {
-    // Collect directional input.
-    let mut intent = Vec2::ZERO;
-    if input.pressed(KeyCode::KeyW) || input.pressed(KeyCode::ArrowUp) {
-        intent.y += 1.0;
-    }
-    if input.pressed(KeyCode::KeyS) || input.pressed(KeyCode::ArrowDown) {
-        intent.y -= 1.0;
-    }
-    if input.pressed(KeyCode::KeyA) || input.pressed(KeyCode::ArrowLeft) {
-        intent.x -= 1.0;
-    }
-    if input.pressed(KeyCode::KeyD) || input.pressed(KeyCode::ArrowRight) {
-        intent.x += 1.0;
-    }
+    let (camera, camera_global_transform) = camera_query.single();
+    let window = window_query.single();
 
-    // Normalize so that diagonal movement has the same speed as
-    // horizontal and vertical movement.
-    // This should be omitted if the input comes from an analog stick instead.
-    let intent = intent.normalize_or_zero();
-
-    // Apply movement intent to controllers.
-    for mut controller in &mut controller_query {
-        controller.intent = intent;
+    click_controller.position = None;
+    if input.just_pressed(MouseButton::Left) {
+        if let Some(p) = window
+            .cursor_position()
+            .or_else(|| touches_input.first_pressed_position())
+            .and_then(|cursor| camera.viewport_to_world_2d(camera_global_transform, cursor))
+        {
+            click_controller.position = Some(p);
+        }
     }
 }
 
 #[derive(Resource, Asset, Reflect, Clone)]
-pub struct PlayerAssets {
+pub struct CreatureAssets {
     // This #[dependency] attribute marks the field as a dependency of the Asset.
     // This means that it will not finish loading until the labeled asset is also loaded.
     #[dependency]
@@ -123,7 +147,7 @@ pub struct PlayerAssets {
     pub steps: Vec<Handle<AudioSource>>,
 }
 
-impl PlayerAssets {
+impl CreatureAssets {
     pub const PATH_DUCKY: &'static str = "images/ducky.png";
     pub const PATH_STEP_1: &'static str = "audio/sound_effects/step1.ogg";
     pub const PATH_STEP_2: &'static str = "audio/sound_effects/step2.ogg";
@@ -131,22 +155,22 @@ impl PlayerAssets {
     pub const PATH_STEP_4: &'static str = "audio/sound_effects/step4.ogg";
 }
 
-impl FromWorld for PlayerAssets {
+impl FromWorld for CreatureAssets {
     fn from_world(world: &mut World) -> Self {
         let assets = world.resource::<AssetServer>();
         Self {
             ducky: assets.load_with_settings(
-                PlayerAssets::PATH_DUCKY,
+                CreatureAssets::PATH_DUCKY,
                 |settings: &mut ImageLoaderSettings| {
                     // Use `nearest` image sampling to preserve the pixel art style.
                     settings.sampler = ImageSampler::nearest();
                 },
             ),
             steps: vec![
-                assets.load(PlayerAssets::PATH_STEP_1),
-                assets.load(PlayerAssets::PATH_STEP_2),
-                assets.load(PlayerAssets::PATH_STEP_3),
-                assets.load(PlayerAssets::PATH_STEP_4),
+                assets.load(CreatureAssets::PATH_STEP_1),
+                assets.load(CreatureAssets::PATH_STEP_2),
+                assets.load(CreatureAssets::PATH_STEP_3),
+                assets.load(CreatureAssets::PATH_STEP_4),
             ],
         }
     }
