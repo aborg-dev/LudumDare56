@@ -2,6 +2,8 @@
 //! Note that this is separate from the `movement` module as that could be used
 //! for other characters as well.
 
+use std::time::Duration;
+
 use bevy::{
     ecs::{system::RunSystemOnce as _, world::Command},
     math::bounding::Aabb2d,
@@ -66,6 +68,7 @@ pub struct SpawnCreature {
     pub max_speed: f32,
     pub pos: Vec2,
     pub movement: MovementPattern,
+    pub shrink_duration: Duration,
 }
 
 impl Command for SpawnCreature {
@@ -87,7 +90,7 @@ fn spawn_creature(
     // this example: https://github.com/bevyengine/bevy/blob/latest/examples/2d/texture_atlas.rs
     let layout = TextureAtlasLayout::from_grid(UVec2::splat(32), 6, 2, Some(UVec2::splat(1)), None);
     let texture_atlas_layout = texture_atlas_layouts.add(layout);
-    let creature_animation = CreatureAnimation::new();
+    let creature_animation = CreatureAnimation::new(config.shrink_duration);
 
     commands.spawn((
         Name::new("Creature"),

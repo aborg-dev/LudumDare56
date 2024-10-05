@@ -9,7 +9,10 @@ use crate::demo::movement_pattern::MovementPattern;
 use crate::screens::Screen;
 use crate::AppSet;
 
-const SPAWN_DURATION_SECS: f32 = 1.0;
+use std::time::Duration;
+
+const SHRINK_DURATION: Duration = Duration::from_secs(10);
+const SPAWN_DURATION: Duration = Duration::from_secs(1);
 
 #[derive(Resource, Debug, Clone, PartialEq, Reflect)]
 #[reflect(Resource)]
@@ -17,10 +20,7 @@ struct SpawnTimer(Timer);
 
 impl Default for SpawnTimer {
     fn default() -> Self {
-        Self(Timer::from_seconds(
-            SPAWN_DURATION_SECS,
-            TimerMode::Repeating,
-        ))
+        Self(Timer::new(SPAWN_DURATION, TimerMode::Repeating))
     }
 }
 
@@ -45,6 +45,7 @@ pub fn spawn_level(world: &mut World) {
         max_speed: 400.0,
         pos: Vec2 { x: 0.0, y: 0.0 },
         movement: MovementPattern::Constant(Vec2 { x: 1.0, y: 0.5 }),
+        shrink_duration: SHRINK_DURATION,
     }
     .apply(world);
 }
@@ -84,6 +85,7 @@ fn check_spawn_timer(
             max_speed: 400.0,
             pos,
             movement: MovementPattern::Constant(direction),
+            shrink_duration: SHRINK_DURATION,
         });
     }
 }

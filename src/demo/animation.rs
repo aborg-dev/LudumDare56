@@ -10,7 +10,6 @@ use std::time::Duration;
 use crate::{demo::creature::CreatureAssets, AppSet};
 
 pub(super) fn plugin(app: &mut App) {
-    // Animate and play sound effects based on controls.
     app.register_type::<CreatureAnimation>();
     app.add_systems(
         Update,
@@ -39,7 +38,6 @@ fn update_animation_timer(time: Res<Time>, mut query: Query<&mut CreatureAnimati
 }
 
 /// Component that tracks player's animation state.
-/// It is tightly bound to the texture atlas we use.
 #[derive(Component, Reflect)]
 #[reflect(Component)]
 pub struct CreatureAnimation {
@@ -47,9 +45,9 @@ pub struct CreatureAnimation {
 }
 
 impl CreatureAnimation {
-    pub fn new() -> Self {
+    pub fn new(duration: Duration) -> Self {
         Self {
-            timer: Timer::from_seconds(10.0, TimerMode::Once),
+            timer: Timer::new(duration, TimerMode::Once),
         }
     }
 
