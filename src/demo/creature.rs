@@ -23,17 +23,26 @@ use crate::{
     AppSet,
 };
 
+#[derive(Resource, Reflect, Clone, Default)]
+pub struct GameScore {
+    pub score: u32,
+}
+
 pub(super) fn plugin(app: &mut App) {
     app.register_type::<Creature>();
     app.load_resource::<CreatureAssets>();
     app.insert_resource(ClickController::default());
+
+    app.insert_resource(GameScore::default());
 
     // Record directional input as movement controls.
     app.add_systems(
         Update,
         (
             record_player_click_input.in_set(AppSet::RecordInput),
-            process_clicks_on_creatures.in_set(AppSet::Update),
+            (process_clicks_on_creatures, end_game_on_too_many_creatures)
+                .chain()
+                .in_set(AppSet::Update),
         ),
     );
 }
@@ -41,6 +50,7 @@ pub(super) fn plugin(app: &mut App) {
 fn process_clicks_on_creatures(
     click_controller: Res<ClickController>,
     creatures: Query<(Entity, &Transform), With<Creature>>,
+    mut game_score: ResMut<GameScore>,
     mut commands: Commands,
 ) {
     if click_controller.position.is_none() {
@@ -53,7 +63,18 @@ fn process_clicks_on_creatures(
         let aabb2d = Aabb2d::new(transform.translation.xy(), Vec2::splat(half_size));
         if aabb2d.closest_point(p) == p {
             commands.entity(entity).despawn();
+            game_score.score += 1;
         }
+    }
+}
+
+fn end_game_on_too_many_creatures(
+    creatures: Query<Entity, With<Creature>>,
+    mut next_screen: ResMut<NextState<Screen>>,
+) {
+    let count = creatures.iter().count();
+    if count > 10 {
+        next_screen.set(Screen::Score);
     }
 }
 
