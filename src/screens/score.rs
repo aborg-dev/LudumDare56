@@ -15,7 +15,12 @@ fn spawn_score_screen(mut commands: Commands, game_score: Res<GameScore>) {
         .ui_root()
         .insert(StateScoped(Screen::Score))
         .with_children(|children| {
-            children.label(format!("Waves cleared: {}", game_score.score));
+            let message = if game_score.win {
+                "You've cleared all waves.\nCongratulations!".to_string()
+            } else {
+                format!("You've reached wave {}.\nTry again!", game_score.score)
+            };
+            children.large_message(&message);
 
             children.button("Restart").observe(enter_gameplay_screen);
             children.button("Menu").observe(enter_title_screen);

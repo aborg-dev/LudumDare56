@@ -19,7 +19,7 @@ use std::time::Duration;
 
 use super::creature::Creature;
 
-const WAVE_DURATION: Duration = Duration::from_secs(30);
+const WAVE_DURATION: Duration = Duration::from_secs(20);
 
 #[derive(Resource, Debug, Clone, PartialEq, Reflect)]
 #[reflect(Resource)]
@@ -143,9 +143,9 @@ fn check_wave_spawn(
 ) {
     // If it's a first wave or the wave was cleared.
     if wave_counter.wave == 0 || creatures.iter().len() == 0 {
+        // Last level done.
         let Some(level_handle) = level_handles.game_levels.get(wave_counter.wave as usize) else {
-            // TODO: Show win screen.
-            // last level done
+            game_score.win = true;
             next_screen.set(Screen::Score);
             return;
         };
@@ -156,9 +156,14 @@ fn check_wave_spawn(
     }
 }
 
-fn check_wave_timer(mut next_screen: ResMut<NextState<Screen>>, timer: Res<WaveTimer>) {
+fn check_wave_timer(
+    mut next_screen: ResMut<NextState<Screen>>,
+    timer: Res<WaveTimer>,
+    mut game_score: ResMut<GameScore>,
+) {
     // This means we've lost.
     if timer.0.just_finished() {
+        game_score.win = false;
         next_screen.set(Screen::Score);
     }
 }

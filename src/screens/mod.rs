@@ -16,6 +16,7 @@ use crate::theme::palette::THEME_MALACHITE_DARK;
 #[derive(Resource, Reflect, Clone, Default)]
 pub struct GameScore {
     pub score: u32,
+    pub win: bool,
 }
 
 pub(super) fn plugin(app: &mut App) {
