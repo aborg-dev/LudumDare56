@@ -1,5 +1,7 @@
 //! Spawn the main level.
 
+use bevy::ecs::system::RunSystemOnce;
+use bevy::ecs::world::Command;
 use bevy::prelude::*;
 use bevy::window::PrimaryWindow;
 use bevy_common_assets::ron::RonAssetPlugin;
@@ -46,6 +48,9 @@ pub struct LevelDefinition {
     creatures: Vec<CreatureDefinition>,
 }
 
+#[derive(Clone, Reflect, Resource, Default, PartialEq)]
+pub struct DevMode(pub bool);
+
 impl FromWorld for Levels {
     fn from_world(world: &mut World) -> Self {
         let assets = world.resource::<AssetServer>();
@@ -89,6 +94,7 @@ pub(super) fn plugin(app: &mut App) {
     app.register_type::<SpawnTimer>();
     app.load_resource::<WaveSound>();
     app.load_resource::<Levels>();
+    app.init_resource::<DevMode>();
     app.add_systems(OnEnter(Screen::Gameplay), add_resources);
     app.add_systems(OnExit(Screen::Gameplay), remove_resources);
 
@@ -96,7 +102,9 @@ pub(super) fn plugin(app: &mut App) {
         Update,
         (
             tick_spawn_timer.in_set(AppSet::TickTimers),
-            check_spawn_timer.in_set(AppSet::Update),
+            check_spawn_timer
+                .in_set(AppSet::Update)
+                .run_if(resource_equals(DevMode(false))),
         )
             .run_if(resource_exists::<WaveSound>)
             .run_if(in_state(Screen::Gameplay)),
@@ -119,11 +127,34 @@ fn tick_spawn_timer(time: Res<Time>, mut timer: ResMut<SpawnTimer>) {
 
 fn check_spawn_timer(
     timer: ResMut<SpawnTimer>,
-    mut wave_counter: ResMut<WaveCounter>,
     mut next_screen: ResMut<NextState<Screen>>,
+    level_handles: Res<Levels>,
+    mut commands: Commands,
+    mut wave_counter: ResMut<WaveCounter>,
+) {
+    if timer.0.just_finished() || wave_counter.wave == 0 {
+        let Some(level_handle) = level_handles.game_levels.get(wave_counter.wave as usize) else {
+            // last level done
+            next_screen.set(Screen::Score);
+            return;
+        };
+        wave_counter.wave += 1;
+        commands.add(SpawnLevel(level_handle.clone()));
+    }
+}
+
+pub(crate) struct SpawnLevel(pub Handle<LevelDefinition>);
+
+impl Command for SpawnLevel {
+    fn apply(self, world: &mut World) {
+        world.run_system_once_with(self, spawn_level);
+    }
+}
+
+fn spawn_level(
+    In(SpawnLevel(level_handle)): In<SpawnLevel>,
     mut commands: Commands,
     window_query: Query<&Window, With<PrimaryWindow>>,
-    level_handles: Res<Levels>,
     levels: Res<Assets<LevelDefinition>>,
     sound: Res<WaveSound>,
 ) {
@@ -131,45 +162,37 @@ fn check_spawn_timer(
         return;
     };
 
-    if timer.0.just_finished() || wave_counter.wave == 0 {
-        let Some(level_handle) = level_handles.game_levels.get(wave_counter.wave as usize) else {
-            // last level done
-            next_screen.set(Screen::Score);
-            return;
-        };
-        let Some(level) = levels.get(level_handle) else {
-            // level not loaded, yet
-            println!("Loading order wrong, level {level_handle:?} has not been loaded when it should have been spawned");
-            return;
-        };
+    let Some(level) = levels.get(&level_handle) else {
+        // level not loaded, yet
+        println!("Loading order wrong, level {level_handle:?} has not been loaded when it should have been spawned");
+        return;
+    };
 
-        commands.spawn((
-            AudioBundle {
-                source: sound.sound.clone(),
-                settings: PlaybackSettings::DESPAWN,
-            },
-            SoundEffect,
-        ));
+    commands.spawn((
+        AudioBundle {
+            source: sound.sound.clone(),
+            settings: PlaybackSettings::DESPAWN,
+        },
+        SoundEffect,
+    ));
 
-        wave_counter.wave += 1;
-        let mut rng = &mut rand::thread_rng();
-        let size = window.size() - 256.0;
-        let half_size = size / 2.0;
-        let x_dist = Uniform::from(-half_size.x..half_size.x);
-        let y_dist = Uniform::from(-half_size.y..half_size.y);
-        let mut random_screen_pos = || Vec2 {
-            x: x_dist.sample(&mut rng),
-            y: y_dist.sample(&mut rng),
-        };
+    let mut rng = &mut rand::thread_rng();
+    let size = window.size() - 256.0;
+    let half_size = size / 2.0;
+    let x_dist = Uniform::from(-half_size.x..half_size.x);
+    let y_dist = Uniform::from(-half_size.y..half_size.y);
+    let mut random_screen_pos = || Vec2 {
+        x: x_dist.sample(&mut rng),
+        y: y_dist.sample(&mut rng),
+    };
 
-        for creature in &level.creatures {
-            commands.add(SpawnCreature {
-                max_speed: creature.max_speed,
-                pos: creature.pos.unwrap_or_else(&mut random_screen_pos),
-                movement: creature.movement.build(),
-                shrink_duration: Duration::from_millis(creature.shrink_duration_ms),
-                wrap: creature.wrap,
-            });
-        }
+    for creature in &level.creatures {
+        commands.add(SpawnCreature {
+            max_speed: creature.max_speed,
+            pos: creature.pos.unwrap_or_else(&mut random_screen_pos),
+            movement: creature.movement.build(),
+            shrink_duration: Duration::from_millis(creature.shrink_duration_ms),
+            wrap: creature.wrap,
+        });
     }
 }

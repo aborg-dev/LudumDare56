@@ -7,7 +7,11 @@ use crate::{asset_tracking::LoadResource, audio::Music, screens::Screen};
 
 pub(super) fn plugin(app: &mut App) {
     app.load_resource::<GameplayMusic>();
-    app.add_systems(OnEnter(Screen::Gameplay), play_gameplay_music);
+    app.init_resource::<DevGameplay>();
+    app.add_systems(
+        OnEnter(Screen::Gameplay),
+        (play_gameplay_music, reset_dev_portal),
+    );
     app.add_systems(OnExit(Screen::Gameplay), stop_music);
 
     app.add_systems(
@@ -15,6 +19,7 @@ pub(super) fn plugin(app: &mut App) {
         return_to_title_screen
             .run_if(in_state(Screen::Gameplay).and_then(input_just_pressed(KeyCode::Escape))),
     );
+    app.add_systems(Update, dev_mode_portal);
 }
 
 #[derive(Resource, Asset, Reflect, Clone)]
@@ -56,4 +61,32 @@ fn stop_music(mut commands: Commands, mut music: ResMut<GameplayMusic>) {
 
 fn return_to_title_screen(mut next_screen: ResMut<NextState<Screen>>) {
     next_screen.set(Screen::Title);
+}
+
+/// State for a dev view
+#[derive(Resource, Reflect, Clone, Default)]
+pub struct DevGameplay {
+    enter_dev_mode_counter: u32,
+}
+
+fn dev_mode_portal(
+    mut next_screen: ResMut<NextState<Screen>>,
+    mut state: ResMut<DevGameplay>,
+    keys: Res<ButtonInput<KeyCode>>,
+) {
+    // D is for dev
+    if keys.just_pressed(KeyCode::KeyD) {
+        state.enter_dev_mode_counter += 1;
+    } else if keys.get_just_pressed().next().is_some() {
+        // a different key was pressed, reset dev counter
+        state.enter_dev_mode_counter = 0;
+    }
+    if state.enter_dev_mode_counter >= 3 {
+        state.enter_dev_mode_counter = 0;
+        next_screen.set(Screen::Dev);
+    }
+}
+
+fn reset_dev_portal(mut state: ResMut<DevGameplay>) {
+    state.enter_dev_mode_counter = 0;
 }
