@@ -236,7 +236,7 @@ fn record_player_click_input(
     let (camera, camera_global_transform) = camera_query.single();
     let window = window_query.single();
 
-    if input.just_pressed(MouseButton::Left) {
+    if input.just_pressed(MouseButton::Left) || touches_input.any_just_pressed() {
         if let Some(p) = window
             .cursor_position()
             .or_else(|| touches_input.first_pressed_position())
