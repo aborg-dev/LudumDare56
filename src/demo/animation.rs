@@ -23,11 +23,13 @@ pub(super) fn plugin(app: &mut App) {
     );
 }
 
-fn update_animation_shrinking(mut creature_query: Query<(&mut Transform, &mut CreatureAnimation)>) {
-    for (mut transform, animation) in &mut creature_query {
-        let shrink_factor = (1.0 - animation.timer.elapsed_secs() / 10.0).max(0.5);
-        transform.scale = Vec2::splat(0.5 * shrink_factor).extend(1.0);
-    }
+fn update_animation_shrinking(
+    mut _creature_query: Query<(&mut Transform, &mut CreatureAnimation)>,
+) {
+    // for (mut transform, animation) in &mut creature_query {
+    //     let shrink_factor = (1.0 - animation.timer.elapsed_secs() / 10.0).max(0.5);
+    //     transform.scale = Vec2::splat(0.5 * shrink_factor).extend(1.0);
+    // }
 }
 
 /// Update the animation timer.
