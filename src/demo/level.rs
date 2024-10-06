@@ -18,6 +18,7 @@ use crate::AppSet;
 use std::time::Duration;
 
 use super::creature::Creature;
+use super::creature::DeathAnimation;
 
 const WAVE_DURATION: Duration = Duration::from_secs(20);
 
@@ -159,10 +160,11 @@ fn check_wave_spawn(
 fn check_wave_timer(
     mut next_screen: ResMut<NextState<Screen>>,
     timer: Res<WaveTimer>,
+    alive_creatures: Query<&Creature, Without<DeathAnimation>>,
     mut game_score: ResMut<GameScore>,
 ) {
     // This means we've lost.
-    if timer.0.just_finished() {
+    if timer.0.just_finished() && !alive_creatures.is_empty() {
         game_score.win = false;
         next_screen.set(Screen::Score);
     }

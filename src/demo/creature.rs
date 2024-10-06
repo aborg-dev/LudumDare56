@@ -388,7 +388,7 @@ impl Command for KillCreature {
 }
 
 #[derive(Component, Clone, Reflect, Default)]
-struct DeathAnimation {
+pub struct DeathAnimation {
     pub timer: Timer,
 }
 
