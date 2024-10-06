@@ -42,7 +42,7 @@ impl Plugin for AppPlugin {
                         canvas: Some("#bevy".to_string()),
                         fit_canvas_to_parent: true,
                         prevent_default_event_handling: true,
-                        resolution: WindowResolution::new(800.0, 640.0),
+                        resolution: WindowResolution::new(640.0, 800.0),
                         resizable: false,
                         ..default()
                     }
