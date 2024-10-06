@@ -91,7 +91,7 @@ fn process_bullets_landing(
 
     let mut found_target = false;
     for (entity, transform) in &creatures {
-        let scaled_image_dimension = Vec2::splat(32.0) * transform.scale.truncate();
+        let scaled_image_dimension = Vec2::splat(256.0) * transform.scale.truncate();
         let bounding_box =
             Rect::from_center_size(transform.translation.truncate(), scaled_image_dimension);
         if hits
