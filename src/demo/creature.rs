@@ -232,7 +232,13 @@ fn record_player_click_input(
     mut materials: ResMut<Assets<ColorMaterial>>,
     creature_assets: Res<CreatureAssets>,
     mut commands: Commands,
+    bullets: Query<&Bullet>,
 ) {
+    // There can be only one bullet at a time.
+    if !bullets.is_empty() {
+        return;
+    }
+
     let (camera, camera_global_transform) = camera_query.single();
     let window = window_query.single();
 
