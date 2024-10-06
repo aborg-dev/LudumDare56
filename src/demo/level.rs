@@ -204,6 +204,7 @@ fn spawn_level(
 
     for creature in &level.creatures {
         commands.add(SpawnCreature {
+            image: creature.image,
             max_speed: creature.max_speed,
             pos: creature.pos.unwrap_or_else(&mut random_screen_pos),
             movement: creature.movement.build(),

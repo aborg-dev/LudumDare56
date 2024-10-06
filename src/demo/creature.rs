@@ -24,7 +24,10 @@ use crate::{
     AppSet,
 };
 
-use super::{movement::ScreenWrap, movement_pattern::MovementPatternDefinition};
+use super::{
+    creature_image::CreatureImage, movement::ScreenWrap,
+    movement_pattern::MovementPatternDefinition,
+};
 
 const BULLET_DURATION_SEC: f32 = 0.3;
 
@@ -71,7 +74,7 @@ fn update_bullet_animation(mut query: Query<(&Bullet, &mut Transform)>) {
 }
 
 fn process_bullets_landing(
-    creatures: Query<(Entity, &Transform), With<Creature>>,
+    creatures: Query<(Entity, &Transform, &CreatureImage), With<Creature>>,
     bullets: Query<(Entity, &Bullet, &Transform)>,
     mut commands: Commands,
     creature_assets: Res<CreatureAssets>,
@@ -91,8 +94,8 @@ fn process_bullets_landing(
     // Bullet has landed.
 
     let mut found_target = false;
-    for (entity, transform) in &creatures {
-        let scaled_image_dimension = Vec2::splat(256.0) * transform.scale.truncate();
+    for (entity, transform, image) in &creatures {
+        let scaled_image_dimension = image.size().as_vec2() * transform.scale.truncate();
         let bounding_box =
             Rect::from_center_size(transform.translation.truncate(), scaled_image_dimension);
         if hits
@@ -146,6 +149,7 @@ pub struct Creature;
 /// A command to spawn the player character.
 #[derive(Debug)]
 pub struct SpawnCreature {
+    pub image: CreatureImage,
     /// See [`MovementController::max_speed`].
     pub max_speed: f32,
     pub pos: Vec2,
@@ -159,6 +163,8 @@ pub struct SpawnCreature {
 /// A command to spawn the player character.
 #[derive(Debug, Clone, Reflect, serde::Deserialize)]
 pub struct CreatureDefinition {
+    #[serde(default = "CreatureImage::fox")]
+    pub image: CreatureImage,
     pub max_speed: f32,
     /// None is turned into a random position on screen
     pub pos: Option<Vec2>,
@@ -186,17 +192,28 @@ fn spawn_creature(
     // can specify which section of the image we want to see. We will use this
     // to animate our player character. You can learn more about texture atlases in
     // this example: https://github.com/bevyengine/bevy/blob/latest/examples/2d/texture_atlas.rs
-    let layout =
-        TextureAtlasLayout::from_grid(UVec2::splat(256), 1, 1, Some(UVec2::splat(1)), None);
+    let layout = TextureAtlasLayout::from_grid(
+        config.image.size(),
+        config.image.atlas_columns(),
+        config.image.atlas_rows(),
+        Some(UVec2::splat(1)),
+        None,
+    );
     let texture_atlas_layout = texture_atlas_layouts.add(layout);
     let creature_animation = CreatureAnimation::new(config.shrink_duration);
 
+    let texture = match config.image {
+        CreatureImage::Fox => creature_assets.fox.clone(),
+        CreatureImage::Duck => creature_assets.ducky.clone(),
+    };
+
+    let scale = config.image.default_scale();
     let mut entity = commands.spawn((
         Name::new("Creature"),
         Creature,
         SpriteBundle {
-            texture: creature_assets.fox.clone(),
-            transform: Transform::from_scale(Vec2::splat(0.5).extend(1.0))
+            texture,
+            transform: Transform::from_scale(Vec2::splat(scale).extend(1.0))
                 .with_translation(config.pos.extend(1.0)),
             ..Default::default()
         },
@@ -211,6 +228,7 @@ fn spawn_creature(
         config.movement,
         creature_animation,
         StateScoped(Screen::Gameplay),
+        config.image,
     ));
     if config.wrap {
         entity.insert(ScreenWrap);

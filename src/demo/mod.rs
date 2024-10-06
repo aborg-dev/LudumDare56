@@ -7,6 +7,7 @@ use bevy::prelude::*;
 
 mod animation;
 pub mod creature;
+pub mod creature_image;
 pub mod level;
 mod movement;
 pub mod movement_pattern;
