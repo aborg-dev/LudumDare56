@@ -185,7 +185,8 @@ fn spawn_creature(
     // can specify which section of the image we want to see. We will use this
     // to animate our player character. You can learn more about texture atlases in
     // this example: https://github.com/bevyengine/bevy/blob/latest/examples/2d/texture_atlas.rs
-    let layout = TextureAtlasLayout::from_grid(UVec2::splat(32), 6, 2, Some(UVec2::splat(1)), None);
+    let layout =
+        TextureAtlasLayout::from_grid(UVec2::splat(256), 1, 1, Some(UVec2::splat(1)), None);
     let texture_atlas_layout = texture_atlas_layouts.add(layout);
     let creature_animation = CreatureAnimation::new(config.shrink_duration);
 
@@ -193,8 +194,8 @@ fn spawn_creature(
         Name::new("Creature"),
         Creature,
         SpriteBundle {
-            texture: creature_assets.ducky.clone(),
-            transform: Transform::from_scale(Vec2::splat(8.0).extend(1.0))
+            texture: creature_assets.fox.clone(),
+            transform: Transform::from_scale(Vec2::splat(0.5).extend(1.0))
                 .with_translation(config.pos.extend(1.0)),
             ..Default::default()
         },
