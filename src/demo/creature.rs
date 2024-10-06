@@ -43,6 +43,7 @@ pub(super) fn plugin(app: &mut App) {
             tick_bullets.in_set(AppSet::TickTimers),
             record_player_click_input
                 .run_if(resource_exists::<CreatureAssets>)
+                .run_if(in_state(Screen::Gameplay))
                 .in_set(AppSet::RecordInput),
             (
                 update_bullet_animation,
