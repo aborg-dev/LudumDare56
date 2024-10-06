@@ -15,7 +15,7 @@ fn spawn_score_screen(mut commands: Commands, game_score: Res<GameScore>) {
         .ui_root()
         .insert(StateScoped(Screen::Score))
         .with_children(|children| {
-            children.label(format!("Score: {}", game_score.score));
+            children.label(format!("Waves cleared: {}", game_score.score));
 
             children.button("Restart").observe(enter_gameplay_screen);
             children.button("Menu").observe(enter_title_screen);

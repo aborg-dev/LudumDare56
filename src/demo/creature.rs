@@ -20,7 +20,7 @@ use crate::{
         movement::{MovementController, ScreenBounce},
         movement_pattern::MovementPattern,
     },
-    screens::{GameScore, Screen},
+    screens::Screen,
     AppSet,
 };
 
@@ -72,7 +72,6 @@ fn update_bullet_animation(mut query: Query<(&Bullet, &mut Transform)>) {
 fn process_bullets_landing(
     creatures: Query<(Entity, &Transform), With<Creature>>,
     bullets: Query<(Entity, &Bullet, &Transform)>,
-    mut game_score: ResMut<GameScore>,
     mut commands: Commands,
     creature_assets: Res<CreatureAssets>,
 ) {
@@ -100,7 +99,6 @@ fn process_bullets_landing(
             .any(|(_, click_pos)| bounding_box.contains(*click_pos))
         {
             commands.entity(entity).despawn();
-            game_score.score += 1;
             found_target = true;
         }
     }

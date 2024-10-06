@@ -11,6 +11,7 @@ use crate::asset_tracking::LoadResource;
 use crate::audio::SoundEffect;
 use crate::demo::creature::CreatureDefinition;
 use crate::demo::creature::SpawnCreature;
+use crate::screens::GameScore;
 use crate::screens::Screen;
 use crate::AppSet;
 
@@ -131,6 +132,7 @@ fn check_spawn_timer(
     level_handles: Res<Levels>,
     mut commands: Commands,
     mut wave_counter: ResMut<WaveCounter>,
+    mut game_score: ResMut<GameScore>,
 ) {
     if timer.0.just_finished() || wave_counter.wave == 0 {
         let Some(level_handle) = level_handles.game_levels.get(wave_counter.wave as usize) else {
@@ -138,6 +140,7 @@ fn check_spawn_timer(
             next_screen.set(Screen::Score);
             return;
         };
+        game_score.score = wave_counter.wave;
         wave_counter.wave += 1;
         commands.add(SpawnLevel(level_handle.clone()));
     }
