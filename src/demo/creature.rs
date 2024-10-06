@@ -251,7 +251,7 @@ fn record_player_click_input(
                 MaterialMesh2dBundle {
                     mesh: Mesh2dHandle(meshes.add(Annulus::new(90.0, 100.0))),
                     material: materials.add(color),
-                    transform: Transform::from_translation(p.extend(0.0)),
+                    transform: Transform::from_translation(p.extend(2.0)),
                     ..default()
                 },
             ));
