@@ -23,7 +23,7 @@ const WAVE_DURATION: Duration = Duration::from_secs(30);
 
 #[derive(Resource, Debug, Clone, PartialEq, Reflect)]
 #[reflect(Resource)]
-struct WaveTimer(Timer);
+pub struct WaveTimer(pub Timer);
 
 #[derive(Resource, Debug, Clone, PartialEq, Reflect, Default)]
 #[reflect(Resource)]

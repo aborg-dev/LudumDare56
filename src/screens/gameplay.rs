@@ -1,5 +1,7 @@
 //! The screen state for the main gameplay.
 
+use crate::demo::level::WaveTimer;
+use crate::theme::prelude::*;
 use bevy::audio::Volume;
 use bevy::{input::common_conditions::input_just_pressed, prelude::*};
 
@@ -21,6 +23,20 @@ pub(super) fn plugin(app: &mut App) {
             .run_if(in_state(Screen::Gameplay).and_then(input_just_pressed(KeyCode::Escape))),
     );
     app.add_systems(Update, dev_mode_portal);
+    app.add_systems(
+        Update,
+        update_wave_timer.run_if(resource_exists::<WaveTimer>),
+    );
+}
+
+#[derive(Component, Debug, Clone, Reflect)]
+struct WaveTimerLabel;
+
+// Modifies the UI to show the time left in the wave.
+fn update_wave_timer(timer: Res<WaveTimer>, mut query: Query<&mut Text, With<WaveTimerLabel>>) {
+    for mut text in &mut query {
+        text.sections[0].value = format!("Wave time left: {:.0}s", timer.0.remaining_secs().ceil());
+    }
 }
 
 fn spawn_game_background(mut commands: Commands, asset_server: Res<AssetServer>) {
@@ -31,6 +47,15 @@ fn spawn_game_background(mut commands: Commands, asset_server: Res<AssetServer>)
             ..Default::default()
         })
         .insert(Background);
+
+    commands
+        .top_panel()
+        .insert(StateScoped(Screen::Gameplay))
+        .with_children(|children| {
+            children
+                .header(format!("Wave time left: 30s"))
+                .insert(WaveTimerLabel);
+        });
 }
 
 fn remove_background(mut commands: Commands, query: Query<Entity, With<Background>>) {
