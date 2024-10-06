@@ -76,7 +76,10 @@ fn update_bullet_animation(mut query: Query<(&Bullet, &mut Transform)>) {
 }
 
 fn process_bullets_landing(
-    creatures: Query<(Entity, &Transform, &CreatureImage), With<Creature>>,
+    creatures: Query<
+        (Entity, &Transform, &CreatureImage),
+        (With<Creature>, Without<DeathAnimation>),
+    >,
     bullets: Query<(Entity, &Bullet, &Transform)>,
     mut commands: Commands,
     creature_assets: Res<CreatureAssets>,
