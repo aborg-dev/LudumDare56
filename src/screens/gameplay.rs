@@ -63,7 +63,7 @@ fn spawn_game_background(mut commands: Commands, asset_server: Res<AssetServer>)
         .insert(StateScoped(Screen::Gameplay))
         .with_children(|children| {
             children
-                .header(format!("Wave time left: 30s"))
+                .header("Wave time left: 30s".to_owned())
                 .insert(WaveTimerLabel);
         });
 }
