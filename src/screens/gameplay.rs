@@ -145,8 +145,8 @@ fn set_gameplay_area(mut commands: Commands, window_query: Query<&Window, With<P
         return;
     };
     let mut main_area = Rect::from_center_size(Vec2::ZERO, window.size());
-    // subtract 65px for the header
-    main_area.min.y += 65.0;
+    // subtract a few px for the header
+    main_area.min.y += 90.0;
     commands.insert_resource(GameplayArea { main_area });
 }
 

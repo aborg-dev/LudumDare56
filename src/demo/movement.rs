@@ -15,6 +15,7 @@
 
 use bevy::prelude::*;
 
+use super::creature_image::CreatureImage;
 use crate::screens::{GameplayArea, Screen};
 use crate::AppSet;
 
@@ -95,12 +96,12 @@ pub struct ScreenBounce;
 
 fn apply_screen_bounce(
     gameplay_area: Res<GameplayArea>,
-    mut query: Query<(&mut MovementController, &Transform), With<ScreenBounce>>,
+    mut query: Query<(&mut MovementController, &Transform, &CreatureImage), With<ScreenBounce>>,
 ) {
-    let size = gameplay_area.main_area.size();
-    let half_size = size / 2.0;
-
-    for (mut movement, transform) in &mut query {
+    for (mut movement, transform, image) in &mut query {
+        let size =
+            gameplay_area.main_area.size() - (image.size().as_vec2() * image.default_scale());
+        let half_size = size / 2.0;
         let position = transform.translation.xy();
         if position.x.abs() > half_size.x {
             // x is out of border, we have to set the intent modifier such that
