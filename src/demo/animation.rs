@@ -7,7 +7,6 @@
 use bevy::prelude::*;
 use std::time::Duration;
 
-use crate::screens::Screen;
 use crate::{demo::creature::CreatureAssets, AppSet};
 
 pub(super) fn plugin(app: &mut App) {
@@ -20,7 +19,6 @@ pub(super) fn plugin(app: &mut App) {
                 .chain()
                 .run_if(resource_exists::<CreatureAssets>)
                 .in_set(AppSet::Update),
-            end_game_on_shrinked_creature.in_set(AppSet::Update),
         ),
     );
 }
@@ -29,17 +27,6 @@ fn update_animation_shrinking(mut creature_query: Query<(&mut Transform, &mut Cr
     for (mut transform, animation) in &mut creature_query {
         let shrink_factor = (1.0 - animation.timer.elapsed_secs() / 10.0).max(0.3);
         transform.scale = Vec2::splat(0.5 * shrink_factor).extend(1.0);
-    }
-}
-
-fn end_game_on_shrinked_creature(
-    creature_query: Query<&CreatureAnimation>,
-    mut next_screen: ResMut<NextState<Screen>>,
-) {
-    for animation in &creature_query {
-        if animation.timer.finished() {
-            next_screen.set(Screen::Score);
-        }
     }
 }
 

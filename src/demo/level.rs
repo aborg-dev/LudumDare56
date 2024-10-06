@@ -17,6 +17,8 @@ use crate::AppSet;
 
 use std::time::Duration;
 
+use super::creature::Creature;
+
 const WAVE_DURATION: Duration = Duration::from_secs(30);
 
 #[derive(Resource, Debug, Clone, PartialEq, Reflect)]
@@ -84,7 +86,7 @@ impl FromWorld for WaveSound {
 
 impl Default for WaveTimer {
     fn default() -> Self {
-        Self(Timer::new(WAVE_DURATION, TimerMode::Repeating))
+        Self(Timer::new(WAVE_DURATION, TimerMode::Once))
     }
 }
 
@@ -103,7 +105,8 @@ pub(super) fn plugin(app: &mut App) {
         Update,
         (
             tick_wave_timer.in_set(AppSet::TickTimers),
-            check_wave_timer
+            (check_wave_spawn, check_wave_timer)
+                .chain()
                 .in_set(AppSet::Update)
                 .run_if(resource_equals(DevMode(false))),
         )
@@ -126,16 +129,19 @@ fn tick_wave_timer(time: Res<Time>, mut timer: ResMut<WaveTimer>) {
     timer.0.tick(time.delta());
 }
 
-fn check_wave_timer(
-    timer: ResMut<WaveTimer>,
+fn check_wave_spawn(
+    mut timer: ResMut<WaveTimer>,
     mut next_screen: ResMut<NextState<Screen>>,
-    level_handles: Res<Levels>,
     mut commands: Commands,
     mut wave_counter: ResMut<WaveCounter>,
     mut game_score: ResMut<GameScore>,
+    level_handles: Res<Levels>,
+    creatures: Query<Entity, With<Creature>>,
 ) {
-    if timer.0.just_finished() || wave_counter.wave == 0 {
+    // If it's a first wave or the wave was cleared.
+    if wave_counter.wave == 0 || creatures.iter().len() == 0 {
         let Some(level_handle) = level_handles.game_levels.get(wave_counter.wave as usize) else {
+            // TODO: Show win screen.
             // last level done
             next_screen.set(Screen::Score);
             return;
@@ -143,6 +149,14 @@ fn check_wave_timer(
         game_score.score = wave_counter.wave;
         wave_counter.wave += 1;
         commands.add(SpawnLevel(level_handle.clone()));
+        timer.0.reset();
+    }
+}
+
+fn check_wave_timer(mut next_screen: ResMut<NextState<Screen>>, timer: Res<WaveTimer>) {
+    // This means we've lost.
+    if timer.0.just_finished() {
+        next_screen.set(Screen::Score);
     }
 }
 
