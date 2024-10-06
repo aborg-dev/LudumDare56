@@ -33,8 +33,14 @@ pub(super) fn plugin(app: &mut App) {
 struct WaveTimerLabel;
 
 // Modifies the UI to show the time left in the wave.
-fn update_wave_timer(timer: Res<WaveTimer>, mut query: Query<&mut Text, With<WaveTimerLabel>>) {
-    for mut text in &mut query {
+fn update_wave_timer(
+    timer: Res<WaveTimer>,
+    parent_query: Query<&Children, With<WaveTimerLabel>>,
+    mut child_query: Query<&mut Text>,
+) {
+    let children = parent_query.single();
+    for &child in children.iter() {
+        let mut text = child_query.get_mut(child).unwrap();
         text.sections[0].value = format!("Wave time left: {:.0}s", timer.0.remaining_secs().ceil());
     }
 }
