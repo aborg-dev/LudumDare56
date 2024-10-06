@@ -31,8 +31,8 @@ impl CreatureImage {
 
     pub fn atlas_columns(&self) -> u32 {
         match self {
-            CreatureImage::Fox => 1,
-            CreatureImage::Snake => 1,
+            CreatureImage::Fox => 2,
+            CreatureImage::Snake => 2,
             CreatureImage::Duck => 6,
         }
     }

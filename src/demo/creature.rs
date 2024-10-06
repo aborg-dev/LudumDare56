@@ -44,6 +44,7 @@ pub(super) fn plugin(app: &mut App) {
         Update,
         (
             tick_bullets.in_set(AppSet::TickTimers),
+            tick_death_animation.in_set(AppSet::TickTimers),
             record_player_click_input
                 .run_if(resource_exists::<CreatureAssets>)
                 .run_if(in_state(Screen::Gameplay))
@@ -56,6 +57,7 @@ pub(super) fn plugin(app: &mut App) {
                 .chain()
                 .run_if(resource_exists::<CreatureAssets>)
                 .in_set(AppSet::Update),
+            reaper,
         ),
     );
 }
@@ -102,7 +104,7 @@ fn process_bullets_landing(
             .iter()
             .any(|(_, click_pos)| bounding_box.contains(*click_pos))
         {
-            commands.entity(entity).despawn();
+            commands.add(KillCreature(entity));
             found_target = true;
         }
     }
@@ -220,7 +222,7 @@ fn spawn_creature(
         },
         TextureAtlas {
             layout: texture_atlas_layout.clone(),
-            index: 1,
+            index: 0,
         },
         MovementController {
             max_speed: config.max_speed,
@@ -364,5 +366,42 @@ impl FromWorld for CreatureAssets {
             hit: assets.load(CreatureAssets::PATH_HIT),
             miss: assets.load(CreatureAssets::PATH_MISS),
         }
+    }
+}
+
+#[derive(Reflect, Clone)]
+struct KillCreature(Entity);
+
+impl Command for KillCreature {
+    fn apply(self, world: &mut World) {
+        if let Some(mut atlas) = world.get_mut::<TextureAtlas>(self.0) {
+            // index 1 is for shot creatures
+            atlas.index = 1;
+        }
+        if let Some(mut movement) = world.get_mut::<MovementController>(self.0) {
+            movement.intent_modifier = Vec2::ZERO;
+        }
+        world.entity_mut(self.0).insert(DeathAnimation {
+            timer: Timer::from_seconds(1.0, TimerMode::Once),
+        });
+    }
+}
+
+#[derive(Component, Clone, Reflect, Default)]
+struct DeathAnimation {
+    pub timer: Timer,
+}
+
+fn reaper(mut commands: Commands, query: Query<(&DeathAnimation, Entity)>) {
+    for (animation, entity) in &query {
+        if animation.timer.finished() {
+            commands.entity(entity).despawn();
+        }
+    }
+}
+
+fn tick_death_animation(time: Res<Time>, mut query: Query<&mut DeathAnimation>) {
+    for mut animation in &mut query.iter_mut() {
+        animation.timer.tick(time.delta());
     }
 }
