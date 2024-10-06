@@ -9,6 +9,7 @@ mod splash;
 mod title;
 
 use bevy::prelude::*;
+pub use gameplay::GameplayArea;
 
 use crate::theme::palette::THEME_MALACHITE_DARK;
 

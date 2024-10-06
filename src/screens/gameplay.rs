@@ -3,6 +3,7 @@
 use crate::demo::level::WaveTimer;
 use crate::theme::prelude::*;
 use bevy::audio::Volume;
+use bevy::window::PrimaryWindow;
 use bevy::{input::common_conditions::input_just_pressed, prelude::*};
 
 use crate::{asset_tracking::LoadResource, audio::Music, screens::Screen};
@@ -14,7 +15,10 @@ pub(super) fn plugin(app: &mut App) {
         OnEnter(Screen::Gameplay),
         (play_gameplay_music, reset_dev_portal),
     );
-    app.add_systems(OnEnter(Screen::Gameplay), spawn_game_background);
+    app.add_systems(
+        OnEnter(Screen::Gameplay),
+        (spawn_game_background, set_gameplay_area),
+    );
     app.add_systems(OnExit(Screen::Gameplay), (stop_music, remove_background));
 
     app.add_systems(
@@ -73,6 +77,11 @@ fn remove_background(mut commands: Commands, query: Query<Entity, With<Backgroun
 #[derive(Component)]
 struct Background;
 
+#[derive(Debug, Clone, Reflect, Resource)]
+pub struct GameplayArea {
+    pub main_area: Rect,
+}
+
 #[derive(Resource, Asset, Reflect, Clone)]
 pub struct GameplayMusic {
     #[dependency]
@@ -108,6 +117,16 @@ fn stop_music(mut commands: Commands, mut music: ResMut<GameplayMusic>) {
     if let Some(entity) = music.entity.take() {
         commands.entity(entity).despawn_recursive();
     }
+}
+
+fn set_gameplay_area(mut commands: Commands, window_query: Query<&Window, With<PrimaryWindow>>) {
+    let Ok(window) = window_query.get_single() else {
+        return;
+    };
+    let mut main_area = Rect::from_center_size(Vec2::ZERO, window.size());
+    // subtract 65px for the header
+    main_area.min.y += 65.0;
+    commands.insert_resource(GameplayArea { main_area });
 }
 
 fn return_to_title_screen(mut next_screen: ResMut<NextState<Screen>>) {

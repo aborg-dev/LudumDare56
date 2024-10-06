@@ -13,8 +13,9 @@
 //! purposes. If you want to move the player in a smoother way,
 //! consider using a [fixed timestep](https://github.com/bevyengine/bevy/blob/main/examples/movement/physics_in_fixed_timestep.rs).
 
-use bevy::{prelude::*, window::PrimaryWindow};
+use bevy::prelude::*;
 
+use crate::screens::{GameplayArea, Screen};
 use crate::AppSet;
 
 pub(super) fn plugin(app: &mut App) {
@@ -22,7 +23,11 @@ pub(super) fn plugin(app: &mut App) {
 
     app.add_systems(
         Update,
-        (apply_movement, apply_screen_wrap, apply_screen_bounce)
+        (
+            apply_movement,
+            apply_screen_wrap.run_if(in_state(Screen::Gameplay)),
+            apply_screen_bounce.run_if(in_state(Screen::Gameplay)),
+        )
             .chain()
             .in_set(AppSet::Update),
     );
@@ -72,13 +77,10 @@ fn apply_movement(
 pub struct ScreenWrap;
 
 fn apply_screen_wrap(
-    window_query: Query<&Window, With<PrimaryWindow>>,
+    gameplay_area: Res<GameplayArea>,
     mut wrap_query: Query<&mut Transform, With<ScreenWrap>>,
 ) {
-    let Ok(window) = window_query.get_single() else {
-        return;
-    };
-    let size = window.size() + 256.0;
+    let size = gameplay_area.main_area.size() + 256.0;
     let half_size = size / 2.0;
     for mut transform in &mut wrap_query {
         let position = transform.translation.xy();
@@ -92,13 +94,10 @@ fn apply_screen_wrap(
 pub struct ScreenBounce;
 
 fn apply_screen_bounce(
-    window_query: Query<&Window, With<PrimaryWindow>>,
+    gameplay_area: Res<GameplayArea>,
     mut query: Query<(&mut MovementController, &Transform), With<ScreenBounce>>,
 ) {
-    let Ok(window) = window_query.get_single() else {
-        return;
-    };
-    let size = window.size();
+    let size = gameplay_area.main_area.size();
     let half_size = size / 2.0;
 
     for (mut movement, transform) in &mut query {

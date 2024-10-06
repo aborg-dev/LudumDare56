@@ -3,7 +3,6 @@
 use bevy::ecs::system::RunSystemOnce;
 use bevy::ecs::world::Command;
 use bevy::prelude::*;
-use bevy::window::PrimaryWindow;
 use bevy_common_assets::ron::RonAssetPlugin;
 use rand::distributions::{Distribution, Uniform};
 
@@ -12,6 +11,7 @@ use crate::audio::SoundEffect;
 use crate::demo::creature::CreatureDefinition;
 use crate::demo::creature::SpawnCreature;
 use crate::screens::GameScore;
+use crate::screens::GameplayArea;
 use crate::screens::Screen;
 use crate::AppSet;
 
@@ -174,14 +174,10 @@ impl Command for SpawnLevel {
 fn spawn_level(
     In(SpawnLevel(level_handle)): In<SpawnLevel>,
     mut commands: Commands,
-    window_query: Query<&Window, With<PrimaryWindow>>,
+    gameplay_area: Res<GameplayArea>,
     levels: Res<Assets<LevelDefinition>>,
     sound: Res<WaveSound>,
 ) {
-    let Ok(window) = window_query.get_single() else {
-        return;
-    };
-
     let Some(level) = levels.get(&level_handle) else {
         // level not loaded, yet
         println!("Loading order wrong, level {level_handle:?} has not been loaded when it should have been spawned");
@@ -197,7 +193,7 @@ fn spawn_level(
     ));
 
     let mut rng = &mut rand::thread_rng();
-    let size = window.size() - 256.0;
+    let size = gameplay_area.main_area.size() - 256.0;
     let half_size = size / 2.0;
     let x_dist = Uniform::from(-half_size.x..half_size.x);
     let y_dist = Uniform::from(-half_size.y..half_size.y);
