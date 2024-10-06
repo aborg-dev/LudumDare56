@@ -314,7 +314,7 @@ impl FromWorld for CreatureAssets {
                 CreatureAssets::PATH_FOX,
                 |settings: &mut ImageLoaderSettings| {
                     // Use `nearest` image sampling to preserve the pixel art style.
-                    settings.sampler = ImageSampler::nearest();
+                    settings.sampler = ImageSampler::linear();
                 },
             ),
             steps: vec![
