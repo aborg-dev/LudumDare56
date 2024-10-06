@@ -5,10 +5,12 @@ LevelDefinition(
             movement: Circle ( radius: 0.3, duration_ms: 6000 )
         ),
         CreatureDefinition (
+            image: Snake,
             max_speed: 800.0,
             movement: Periodic ( max_speed: Vec2(1.0, 1.0), duration_ms: 2000 )
         ),
         CreatureDefinition (
+            image: Snake,
             max_speed: 250.0,
             movement: Periodic ( max_speed: Vec2(0.2, -0.3), duration_ms: 500 )
         ),

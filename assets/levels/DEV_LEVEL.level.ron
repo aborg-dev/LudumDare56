@@ -5,7 +5,7 @@ LevelDefinition(
         //     movement: Constant ( speed: Vec2(1.0, 1.0) )
         // ),
         CreatureDefinition (
-            image: Duck,
+            image: Snake,
             max_speed: 400.0,
             movement: Periodic ( max_speed: Vec2(1.0, 1.0), duration_ms: 500 )
         ),
