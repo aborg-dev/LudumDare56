@@ -195,7 +195,7 @@ fn spawn_creature(
         Name::new("Creature"),
         Creature,
         SpriteBundle {
-            texture: creature_assets.fox.clone(),
+            texture: creature_assets.ducky.clone(),
             transform: Transform::from_scale(Vec2::splat(8.0).extend(1.0))
                 .with_translation(config.pos.extend(1.0)),
             ..Default::default()
