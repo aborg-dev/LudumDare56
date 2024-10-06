@@ -99,11 +99,14 @@ fn apply_screen_bounce(
     mut query: Query<(&mut MovementController, &Transform, &CreatureImage), With<ScreenBounce>>,
 ) {
     for (mut movement, transform, image) in &mut query {
-        let size =
-            gameplay_area.main_area.size() - (image.size().as_vec2() * image.default_scale());
-        let half_size = size / 2.0;
+        let half_image_size = image.size().as_vec2() * image.default_scale() / 2.0;
+        let min_y = gameplay_area.main_area.min.y + half_image_size.y;
+        let max_y = gameplay_area.main_area.max.y - half_image_size.y;
+        let min_x = gameplay_area.main_area.min.x + half_image_size.x;
+        let max_x = gameplay_area.main_area.max.x - half_image_size.x;
+
         let position = transform.translation.xy();
-        if position.x.abs() > half_size.x {
+        if position.x > max_x || position.x < min_x {
             // x is out of border, we have to set the intent modifier such that
             // it goes away from the edge after it is multiplied with the
             // original intent FIXME: This is hacky, can we do better? The
@@ -112,7 +115,7 @@ fn apply_screen_bounce(
             // each pattern should define its own bouncing.
             movement.intent_modifier.x = movement.intent.x.signum() * -position.x.signum();
         }
-        if position.y.abs() > half_size.y {
+        if position.y > max_y || position.y < min_y {
             movement.intent_modifier.y = movement.intent.y.signum() * -position.y.signum();
         }
     }

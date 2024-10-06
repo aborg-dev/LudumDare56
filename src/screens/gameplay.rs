@@ -8,6 +8,8 @@ use bevy::{input::common_conditions::input_just_pressed, prelude::*};
 
 use crate::{asset_tracking::LoadResource, audio::Music, screens::Screen};
 
+pub const HEADER_SIZE: f32 = 65.0;
+
 pub(super) fn plugin(app: &mut App) {
     app.load_resource::<GameplayMusic>();
     app.init_resource::<DevGameplay>();
@@ -146,7 +148,7 @@ fn set_gameplay_area(mut commands: Commands, window_query: Query<&Window, With<P
     };
     let mut main_area = Rect::from_center_size(Vec2::ZERO, window.size());
     // subtract a few px for the header
-    main_area.min.y += 90.0;
+    main_area.max.y -= HEADER_SIZE;
     commands.insert_resource(GameplayArea { main_area });
 }
 
