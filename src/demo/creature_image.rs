@@ -5,6 +5,7 @@ use bevy::reflect::Reflect;
 #[derive(Clone, Copy, Debug, Reflect, serde::Deserialize, Component)]
 pub(crate) enum CreatureImage {
     Fox,
+    Snake,
     Duck,
 }
 
@@ -18,6 +19,7 @@ impl CreatureImage {
     pub fn size(&self) -> UVec2 {
         match self {
             CreatureImage::Fox => UVec2::splat(256),
+            CreatureImage::Snake => UVec2::splat(256),
             CreatureImage::Duck => UVec2::splat(32),
         }
     }
@@ -30,6 +32,7 @@ impl CreatureImage {
     pub fn atlas_columns(&self) -> u32 {
         match self {
             CreatureImage::Fox => 1,
+            CreatureImage::Snake => 1,
             CreatureImage::Duck => 6,
         }
     }
@@ -37,6 +40,7 @@ impl CreatureImage {
     pub fn atlas_rows(&self) -> u32 {
         match self {
             CreatureImage::Fox => 1,
+            CreatureImage::Snake => 1,
             CreatureImage::Duck => 2,
         }
     }

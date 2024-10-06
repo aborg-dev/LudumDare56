@@ -204,6 +204,7 @@ fn spawn_creature(
 
     let texture = match config.image {
         CreatureImage::Fox => creature_assets.fox.clone(),
+        CreatureImage::Snake => creature_assets.snake.clone(),
         CreatureImage::Duck => creature_assets.ducky.clone(),
     };
 
@@ -300,6 +301,8 @@ pub struct CreatureAssets {
     #[dependency]
     pub fox: Handle<Image>,
     #[dependency]
+    pub snake: Handle<Image>,
+    #[dependency]
     pub steps: Vec<Handle<AudioSource>>,
     #[dependency]
     pub catch: Handle<AudioSource>,
@@ -314,6 +317,7 @@ pub struct CreatureAssets {
 impl CreatureAssets {
     pub const PATH_DUCKY: &'static str = "images/ducky.png";
     pub const PATH_FOX: &'static str = "images/fox.png";
+    pub const PATH_SNAKE: &'static str = "images/snake.png";
     pub const PATH_STEP_1: &'static str = "audio/sound_effects/step1.ogg";
     pub const PATH_STEP_2: &'static str = "audio/sound_effects/step2.ogg";
     pub const PATH_STEP_3: &'static str = "audio/sound_effects/step3.ogg";
@@ -337,6 +341,13 @@ impl FromWorld for CreatureAssets {
             ),
             fox: assets.load_with_settings(
                 CreatureAssets::PATH_FOX,
+                |settings: &mut ImageLoaderSettings| {
+                    // Use `nearest` image sampling to preserve the pixel art style.
+                    settings.sampler = ImageSampler::linear();
+                },
+            ),
+            snake: assets.load_with_settings(
+                CreatureAssets::PATH_SNAKE,
                 |settings: &mut ImageLoaderSettings| {
                     // Use `nearest` image sampling to preserve the pixel art style.
                     settings.sampler = ImageSampler::linear();
