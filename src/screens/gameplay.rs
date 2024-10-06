@@ -12,7 +12,8 @@ pub(super) fn plugin(app: &mut App) {
         OnEnter(Screen::Gameplay),
         (play_gameplay_music, reset_dev_portal),
     );
-    app.add_systems(OnExit(Screen::Gameplay), stop_music);
+    app.add_systems(OnEnter(Screen::Gameplay), spawn_game_background);
+    app.add_systems(OnExit(Screen::Gameplay), (stop_music, remove_background));
 
     app.add_systems(
         Update,
@@ -21,6 +22,25 @@ pub(super) fn plugin(app: &mut App) {
     );
     app.add_systems(Update, dev_mode_portal);
 }
+
+fn spawn_game_background(mut commands: Commands, asset_server: Res<AssetServer>) {
+    let background_image = asset_server.load("images/background.png");
+    commands
+        .spawn(SpriteBundle {
+            texture: background_image,
+            ..Default::default()
+        })
+        .insert(Background);
+}
+
+fn remove_background(mut commands: Commands, query: Query<Entity, With<Background>>) {
+    for entity in query.iter() {
+        commands.entity(entity).despawn();
+    }
+}
+
+#[derive(Component)]
+struct Background;
 
 #[derive(Resource, Asset, Reflect, Clone)]
 pub struct GameplayMusic {
