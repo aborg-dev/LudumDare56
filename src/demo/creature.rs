@@ -89,14 +89,8 @@ fn process_bullets_landing(
     }
 
     // Bullet has landed.
-    commands.spawn((
-        AudioBundle {
-            source: creature_assets.catch.clone(),
-            settings: PlaybackSettings::DESPAWN,
-        },
-        SoundEffect,
-    ));
 
+    let mut found_target = false;
     for (entity, transform) in &creatures {
         let scaled_image_dimension = Vec2::splat(32.0) * transform.scale.truncate();
         let bounding_box =
@@ -105,11 +99,31 @@ fn process_bullets_landing(
             .iter()
             .any(|(_, click_pos)| bounding_box.contains(*click_pos))
         {
-            // TODO: Add a sound effect on hit.
             commands.entity(entity).despawn();
             game_score.score += 1;
+            found_target = true;
         }
     }
+
+    if found_target {
+        commands.spawn((
+            AudioBundle {
+                source: creature_assets.hit.clone(),
+                settings: PlaybackSettings::DESPAWN,
+            },
+            SoundEffect,
+        ));
+    } else {
+        commands.spawn((
+            AudioBundle {
+                source: creature_assets.miss.clone(),
+                settings: PlaybackSettings::DESPAWN,
+            },
+            SoundEffect,
+        ));
+    }
+
+    // TODO: Add a sound effect on hit.
 
     for (bullet_entity, _) in hits {
         commands.entity(bullet_entity).despawn();
@@ -265,6 +279,10 @@ pub struct CreatureAssets {
     pub catch: Handle<AudioSource>,
     #[dependency]
     pub shot: Handle<AudioSource>,
+    #[dependency]
+    pub hit: Handle<AudioSource>,
+    #[dependency]
+    pub miss: Handle<AudioSource>,
 }
 
 impl CreatureAssets {
@@ -275,6 +293,8 @@ impl CreatureAssets {
     pub const PATH_STEP_4: &'static str = "audio/sound_effects/step4.ogg";
     pub const PATH_CATCH: &'static str = "audio/sound_effects/catch.ogg";
     pub const PATH_SHOT: &'static str = "audio/sound_effects/shot.ogg";
+    pub const PATH_HIT: &'static str = "audio/sound_effects/hit.ogg";
+    pub const PATH_MISS: &'static str = "audio/sound_effects/miss.ogg";
 }
 
 impl FromWorld for CreatureAssets {
@@ -296,6 +316,8 @@ impl FromWorld for CreatureAssets {
             ],
             catch: assets.load(CreatureAssets::PATH_CATCH),
             shot: assets.load(CreatureAssets::PATH_SHOT),
+            hit: assets.load(CreatureAssets::PATH_HIT),
+            miss: assets.load(CreatureAssets::PATH_MISS),
         }
     }
 }
