@@ -11,6 +11,7 @@ use bevy::{
     sprite::{MaterialMesh2dBundle, Mesh2dHandle},
     window::PrimaryWindow,
 };
+use rand::{distributions::Uniform, prelude::Distribution};
 
 use crate::{
     asset_tracking::LoadResource,
@@ -384,38 +385,57 @@ impl Command for KillCreature {
         if let Some(mut movement) = world.get_mut::<MovementController>(self.0) {
             movement.intent_modifier = Vec2::ZERO;
         }
-        world.entity_mut(self.0).insert(DeathAnimation {
-            timer: Timer::from_seconds(1.0, TimerMode::Once),
-        });
+        world.entity_mut(self.0).insert(DeathAnimation::new());
     }
 }
 
 #[derive(Component, Clone, Reflect, Default)]
 pub struct DeathAnimation {
     pub timer: Timer,
+    x_rotation_ms: f32,
+    y_rotation_ms: f32,
 }
 
 fn reaper(
     mut commands: Commands,
-    mut query: Query<(
-        &DeathAnimation,
-        &mut Sprite,
-        &mut Transform,
-        &CreatureImage,
-        Entity,
-    )>,
+    mut query: Query<(&DeathAnimation, &mut Transform, &CreatureImage, Entity)>,
+    time: Res<Time>,
 ) {
-    for (animation, mut sprite, mut transform, image, entity) in &mut query {
+    for (animation, mut transform, image, entity) in &mut query {
         if animation.timer.finished() {
             commands.entity(entity).despawn();
         }
-        sprite.color.set_alpha(animation.timer.fraction_remaining());
-        transform.scale = Vec3::splat(image.default_scale() * animation.timer.fraction_remaining());
+
+        // quadratic animation: start animation fast and slot it down
+        let explosive_entry = animation.timer.fraction_remaining().powi(2);
+
+        let x_rotations =
+            time.delta().as_millis() as f32 / animation.x_rotation_ms * explosive_entry;
+        let y_rotations =
+            time.delta().as_millis() as f32 / animation.y_rotation_ms * explosive_entry;
+        transform.rotate_local_x(std::f32::consts::TAU * x_rotations);
+        transform.rotate_local_y(std::f32::consts::TAU * y_rotations);
+
+        // size reduction at quadratic speed from 1.0 to 0.25
+        transform.scale = Vec3::splat(image.default_scale() * (0.25 + explosive_entry * 0.75));
     }
 }
 
 fn tick_death_animation(time: Res<Time>, mut query: Query<&mut DeathAnimation>) {
     for mut animation in &mut query.iter_mut() {
         animation.timer.tick(time.delta());
+    }
+}
+
+impl DeathAnimation {
+    fn new() -> Self {
+        let rng = &mut rand::thread_rng();
+        let dist = Uniform::from(75..400);
+
+        DeathAnimation {
+            timer: Timer::from_seconds(1.0, TimerMode::Once),
+            x_rotation_ms: dist.sample(rng) as f32,
+            y_rotation_ms: dist.sample(rng) as f32,
+        }
     }
 }
