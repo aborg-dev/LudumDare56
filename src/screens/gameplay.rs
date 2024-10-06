@@ -1,6 +1,6 @@
 //! The screen state for the main gameplay.
 
-use crate::demo::level::WaveTimer;
+use crate::demo::level::{WaveCounter, WaveTimer};
 use crate::theme::prelude::*;
 use bevy::audio::Volume;
 use bevy::window::PrimaryWindow;
@@ -31,10 +31,17 @@ pub(super) fn plugin(app: &mut App) {
         Update,
         update_wave_timer.run_if(resource_exists::<WaveTimer>),
     );
+    app.add_systems(
+        Update,
+        update_wave_number.run_if(resource_exists::<WaveCounter>),
+    );
 }
 
 #[derive(Component, Debug, Clone, Reflect)]
 struct WaveTimerLabel;
+
+#[derive(Component, Debug, Clone, Reflect)]
+struct WaveNumber;
 
 // Modifies the UI to show the time left in the wave.
 fn update_wave_timer(
@@ -45,7 +52,19 @@ fn update_wave_timer(
     let children = parent_query.single();
     for &child in children.iter() {
         let mut text = child_query.get_mut(child).unwrap();
-        text.sections[0].value = format!("Wave time left: {:.0}s", timer.0.remaining_secs().ceil());
+        text.sections[0].value = format!("Time left: {:.0}s", timer.0.remaining_secs().ceil());
+    }
+}
+
+fn update_wave_number(
+    wave_counter: Res<WaveCounter>,
+    parent_query: Query<&Children, With<WaveNumber>>,
+    mut child_query: Query<&mut Text>,
+) {
+    let children = parent_query.single();
+    for &child in children.iter() {
+        let mut text = child_query.get_mut(child).unwrap();
+        text.sections[0].value = format!("Wave: {}", wave_counter.wave);
     }
 }
 
@@ -63,8 +82,10 @@ fn spawn_game_background(mut commands: Commands, asset_server: Res<AssetServer>)
         .insert(StateScoped(Screen::Gameplay))
         .with_children(|children| {
             children
-                .header("Wave time left: 30s".to_owned())
+                .header("Time left: 30s".to_owned())
                 .insert(WaveTimerLabel);
+
+            children.header("Wave: 1".to_owned()).insert(WaveNumber);
         });
 }
 

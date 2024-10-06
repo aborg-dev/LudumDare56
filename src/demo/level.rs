@@ -27,8 +27,8 @@ pub struct WaveTimer(pub Timer);
 
 #[derive(Resource, Debug, Clone, PartialEq, Reflect, Default)]
 #[reflect(Resource)]
-struct WaveCounter {
-    wave: u32,
+pub struct WaveCounter {
+    pub wave: u32,
 }
 
 #[derive(Resource, Asset, Reflect, Clone)]
