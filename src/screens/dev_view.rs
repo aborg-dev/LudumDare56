@@ -40,9 +40,7 @@ fn spawn_dev_screen(
                                         path.path().file_stem().unwrap().to_str().unwrap();
                                     let name =
                                         file_name.strip_suffix(".level").unwrap_or(file_name);
-                                    children
-                                        .button(format!("{name}"))
-                                        .observe(enter_level(level_handle));
+                                    children.button(name).observe(enter_level(level_handle));
                                 }
                             }
                         }
