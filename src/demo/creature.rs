@@ -8,6 +8,7 @@ use bevy::{
     ecs::{system::RunSystemOnce as _, world::Command},
     prelude::*,
     render::texture::{ImageLoaderSettings, ImageSampler},
+    sprite::{MaterialMesh2dBundle, Mesh2dHandle},
     window::PrimaryWindow,
 };
 
@@ -25,6 +26,8 @@ use crate::{
 
 use super::{movement::ScreenWrap, movement_pattern::MovementPatternDefinition};
 
+const BULLET_DURATION_SEC: f32 = 0.3;
+
 const fn default_shrink_duration() -> u64 {
     10_000
 }
@@ -32,14 +35,20 @@ const fn default_shrink_duration() -> u64 {
 pub(super) fn plugin(app: &mut App) {
     app.register_type::<Creature>();
     app.load_resource::<CreatureAssets>();
-    app.insert_resource(ClickController::default());
 
     // Record directional input as movement controls.
     app.add_systems(
         Update,
         (
-            record_player_click_input.in_set(AppSet::RecordInput),
-            (process_clicks_on_creatures, end_game_on_too_many_creatures)
+            tick_bullets.in_set(AppSet::TickTimers),
+            record_player_click_input
+                .run_if(resource_exists::<CreatureAssets>)
+                .in_set(AppSet::RecordInput),
+            (
+                update_bullet_animation,
+                process_bullets_landing,
+                end_game_on_too_many_creatures,
+            )
                 .chain()
                 .run_if(resource_exists::<CreatureAssets>)
                 .in_set(AppSet::Update),
@@ -47,34 +56,63 @@ pub(super) fn plugin(app: &mut App) {
     );
 }
 
-fn process_clicks_on_creatures(
-    click_controller: Res<ClickController>,
+fn tick_bullets(time: Res<Time>, mut query: Query<&mut Bullet>) {
+    for mut bullet in &mut query.iter_mut() {
+        bullet.timer.tick(time.delta());
+    }
+}
+
+fn update_bullet_animation(mut query: Query<(&Bullet, &mut Transform)>) {
+    for (bullet, mut transform) in &mut query.iter_mut() {
+        transform.scale =
+            Vec2::splat(1.0 - bullet.timer.elapsed_secs() / BULLET_DURATION_SEC).extend(1.0);
+    }
+}
+
+fn process_bullets_landing(
     creatures: Query<(Entity, &Transform), With<Creature>>,
+    bullets: Query<(Entity, &Bullet, &Transform)>,
     mut game_score: ResMut<GameScore>,
     mut commands: Commands,
     creature_assets: Res<CreatureAssets>,
 ) {
-    if click_controller.position.is_none() {
+    let mut hits = Vec::new();
+    for (entity, bullet, transform) in bullets.iter() {
+        if !bullet.timer.finished() {
+            continue;
+        }
+
+        hits.push((entity, transform.translation.xy()));
+    }
+    if hits.is_empty() {
         return;
     }
 
-    for (entity, transform) in &creatures {
-        let p = click_controller.position.unwrap();
+    // Bullet has landed.
+    commands.spawn((
+        AudioBundle {
+            source: creature_assets.catch.clone(),
+            settings: PlaybackSettings::DESPAWN,
+        },
+        SoundEffect,
+    ));
 
+    for (entity, transform) in &creatures {
         let scaled_image_dimension = Vec2::splat(32.0) * transform.scale.truncate();
         let bounding_box =
             Rect::from_center_size(transform.translation.truncate(), scaled_image_dimension);
-        if bounding_box.contains(p) {
+        if hits
+            .iter()
+            .any(|(_, click_pos)| bounding_box.contains(*click_pos))
+        {
+            // TODO: Add a sound effect on hit.
             commands.entity(entity).despawn();
             game_score.score += 1;
-            commands.spawn((
-                AudioBundle {
-                    source: creature_assets.catch.clone(),
-                    settings: PlaybackSettings::DESPAWN,
-                },
-                SoundEffect,
-            ));
         }
+    }
+
+    for (bullet_entity, _) in hits {
+        commands.entity(bullet_entity).despawn();
     }
 }
 
@@ -167,9 +205,9 @@ fn spawn_creature(
     }
 }
 
-#[derive(Resource, Reflect, Clone, Default)]
-pub struct ClickController {
-    pub position: Option<Vec2>,
+#[derive(Component, Clone, Reflect, Default)]
+struct Bullet {
+    pub timer: Timer,
 }
 
 fn record_player_click_input(
@@ -177,19 +215,40 @@ fn record_player_click_input(
     touches_input: Res<Touches>,
     window_query: Query<&Window, With<PrimaryWindow>>,
     camera_query: Query<(&Camera, &GlobalTransform)>,
-    mut click_controller: ResMut<ClickController>,
+    mut meshes: ResMut<Assets<Mesh>>,
+    mut materials: ResMut<Assets<ColorMaterial>>,
+    creature_assets: Res<CreatureAssets>,
+    mut commands: Commands,
 ) {
     let (camera, camera_global_transform) = camera_query.single();
     let window = window_query.single();
 
-    click_controller.position = None;
     if input.just_pressed(MouseButton::Left) {
         if let Some(p) = window
             .cursor_position()
             .or_else(|| touches_input.first_pressed_position())
             .and_then(|cursor| camera.viewport_to_world_2d(camera_global_transform, cursor))
         {
-            click_controller.position = Some(p);
+            let color = Color::srgb(1.0, 0.0, 0.0);
+            commands.spawn((
+                Name::new("Bullet"),
+                Bullet {
+                    timer: Timer::from_seconds(BULLET_DURATION_SEC, TimerMode::Once),
+                },
+                MaterialMesh2dBundle {
+                    mesh: Mesh2dHandle(meshes.add(Annulus::new(90.0, 100.0))),
+                    material: materials.add(color),
+                    transform: Transform::from_translation(p.extend(0.0)),
+                    ..default()
+                },
+            ));
+            commands.spawn((
+                AudioBundle {
+                    source: creature_assets.shot.clone(),
+                    settings: PlaybackSettings::DESPAWN,
+                },
+                SoundEffect,
+            ));
         }
     }
 }
@@ -204,6 +263,8 @@ pub struct CreatureAssets {
     pub steps: Vec<Handle<AudioSource>>,
     #[dependency]
     pub catch: Handle<AudioSource>,
+    #[dependency]
+    pub shot: Handle<AudioSource>,
 }
 
 impl CreatureAssets {
@@ -213,6 +274,7 @@ impl CreatureAssets {
     pub const PATH_STEP_3: &'static str = "audio/sound_effects/step3.ogg";
     pub const PATH_STEP_4: &'static str = "audio/sound_effects/step4.ogg";
     pub const PATH_CATCH: &'static str = "audio/sound_effects/catch.ogg";
+    pub const PATH_SHOT: &'static str = "audio/sound_effects/shot.ogg";
 }
 
 impl FromWorld for CreatureAssets {
@@ -233,6 +295,7 @@ impl FromWorld for CreatureAssets {
                 assets.load(CreatureAssets::PATH_STEP_4),
             ],
             catch: assets.load(CreatureAssets::PATH_CATCH),
+            shot: assets.load(CreatureAssets::PATH_SHOT),
         }
     }
 }
