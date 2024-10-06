@@ -17,11 +17,11 @@ use crate::AppSet;
 
 use std::time::Duration;
 
-const SPAWN_DURATION: Duration = Duration::from_secs(5);
+const WAVE_DURATION: Duration = Duration::from_secs(30);
 
 #[derive(Resource, Debug, Clone, PartialEq, Reflect)]
 #[reflect(Resource)]
-struct SpawnTimer(Timer);
+struct WaveTimer(Timer);
 
 #[derive(Resource, Debug, Clone, PartialEq, Reflect, Default)]
 #[reflect(Resource)]
@@ -82,9 +82,9 @@ impl FromWorld for WaveSound {
     }
 }
 
-impl Default for SpawnTimer {
+impl Default for WaveTimer {
     fn default() -> Self {
-        Self(Timer::new(SPAWN_DURATION, TimerMode::Repeating))
+        Self(Timer::new(WAVE_DURATION, TimerMode::Repeating))
     }
 }
 
@@ -92,7 +92,7 @@ pub(super) fn plugin(app: &mut App) {
     // Configure that ***.level.ron files loaded as assets map to a `LevelDefinition`.
     app.add_plugins(RonAssetPlugin::<LevelDefinition>::new(&["level.ron"]));
 
-    app.register_type::<SpawnTimer>();
+    app.register_type::<WaveTimer>();
     app.load_resource::<WaveSound>();
     app.load_resource::<Levels>();
     app.init_resource::<DevMode>();
@@ -102,8 +102,8 @@ pub(super) fn plugin(app: &mut App) {
     app.add_systems(
         Update,
         (
-            tick_spawn_timer.in_set(AppSet::TickTimers),
-            check_spawn_timer
+            tick_wave_timer.in_set(AppSet::TickTimers),
+            check_wave_timer
                 .in_set(AppSet::Update)
                 .run_if(resource_equals(DevMode(false))),
         )
@@ -113,21 +113,21 @@ pub(super) fn plugin(app: &mut App) {
 }
 
 fn add_resources(mut commands: Commands) {
-    commands.insert_resource(SpawnTimer::default());
+    commands.insert_resource(WaveTimer::default());
     commands.insert_resource(WaveCounter::default());
 }
 
 fn remove_resources(mut commands: Commands) {
-    commands.remove_resource::<SpawnTimer>();
+    commands.remove_resource::<WaveTimer>();
     commands.remove_resource::<WaveCounter>();
 }
 
-fn tick_spawn_timer(time: Res<Time>, mut timer: ResMut<SpawnTimer>) {
+fn tick_wave_timer(time: Res<Time>, mut timer: ResMut<WaveTimer>) {
     timer.0.tick(time.delta());
 }
 
-fn check_spawn_timer(
-    timer: ResMut<SpawnTimer>,
+fn check_wave_timer(
+    timer: ResMut<WaveTimer>,
     mut next_screen: ResMut<NextState<Screen>>,
     level_handles: Res<Levels>,
     mut commands: Commands,
