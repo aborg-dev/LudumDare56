@@ -40,10 +40,10 @@ impl Plugin for AppPlugin {
                     primary_window: Window {
                         title: "Ludum Dare56".to_string(),
                         canvas: Some("#bevy".to_string()),
-                        fit_canvas_to_parent: true,
+                        fit_canvas_to_parent: false,
                         prevent_default_event_handling: true,
                         resolution: WindowResolution::new(640.0, 800.0),
-                        resizable: false,
+                        resizable: true,
                         ..default()
                     }
                     .into(),
