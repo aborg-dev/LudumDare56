@@ -392,11 +392,22 @@ struct DeathAnimation {
     pub timer: Timer,
 }
 
-fn reaper(mut commands: Commands, query: Query<(&DeathAnimation, Entity)>) {
-    for (animation, entity) in &query {
+fn reaper(
+    mut commands: Commands,
+    mut query: Query<(
+        &DeathAnimation,
+        &mut Sprite,
+        &mut Transform,
+        &CreatureImage,
+        Entity,
+    )>,
+) {
+    for (animation, mut sprite, mut transform, image, entity) in &mut query {
         if animation.timer.finished() {
             commands.entity(entity).despawn();
         }
+        sprite.color.set_alpha(animation.timer.fraction_remaining());
+        transform.scale = Vec3::splat(image.default_scale() * animation.timer.fraction_remaining());
     }
 }
 
