@@ -1,10 +1,10 @@
 use bevy::prelude::*;
 
-pub const BUTTON_HOVERED_BACKGROUND: Color = Color::srgb(0.186, 0.328, 0.573);
-pub const BUTTON_PRESSED_BACKGROUND: Color = Color::srgb(0.286, 0.478, 0.773);
-
-pub const BUTTON_TEXT: Color = Color::srgb(0.925, 0.925, 0.925);
-pub const LABEL_TEXT: Color = Color::srgb(0.867, 0.827, 0.412);
-pub const HEADER_TEXT: Color = Color::srgb(0.867, 0.827, 0.412);
-
-pub const NODE_BACKGROUND: Color = Color::srgb(0.286, 0.478, 0.773);
+pub const THEME_RED: Color = Color::srgba(242.0 / 255.0, 0.0 / 255.0, 0.0 / 255.0, 1.0);
+pub const THEME_RED_DARK: Color = Color::srgba(127.0 / 255.0, 0.0 / 255.0, 0.0 / 255.0, 1.0);
+pub const THEME_VANILLA: Color = Color::srgba(235.0 / 255.0, 217.0 / 255.0, 153.0 / 255.0, 1.0);
+pub const THEME_VANILLA_DARK: Color = Color::srgba(127.0 / 255.0, 117.0 / 255.0, 83.0 / 255.0, 1.0);
+pub const THEME_ASPARAGUS: Color = Color::srgba(106.0 / 255.0, 147.0 / 255.0, 70.0 / 255.0, 1.0);
+pub const THEME_ASPARAGUS_DARK: Color = Color::srgba(45.0 / 255.0, 63.0 / 255.0, 30.0 / 255.0, 1.0);
+pub const THEME_MALACHITE: Color = Color::srgba(0.0 / 255.0, 217.0 / 255.0, 115.0 / 255.0, 1.0);
+pub const THEME_MALACHITE_DARK: Color = Color::srgba(0.0 / 255.0, 102.0 / 255.0, 54.0 / 255.0, 1.0);
