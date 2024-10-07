@@ -166,15 +166,15 @@ fn check_wave_spawn(
         };
 
         // Play sound on complete level.
-        if wave_counter.wave > 0 {
-            commands.spawn((
-                AudioBundle {
-                    source: sound.sound.clone(),
-                    settings: PlaybackSettings::DESPAWN,
-                },
-                SoundEffect,
-            ));
-        }
+        // if wave_counter.wave > 0 {
+        //     commands.spawn((
+        //         AudioBundle {
+        //             source: sound.sound.clone(),
+        //             settings: PlaybackSettings::DESPAWN,
+        //         },
+        //         SoundEffect,
+        //     ));
+        // }
 
         game_score.score = wave_counter.wave;
         wave_counter.wave += 1;
