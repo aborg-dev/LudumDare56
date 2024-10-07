@@ -27,28 +27,91 @@ fn spawn_dev_screen(
                 .button("Back to game")
                 .observe(enter_gameplay_screen);
 
-            levels
-                .0
-                .visit_dependencies(&mut |asset_id: UntypedAssetId| {
-                    if let Ok(folder_id) = asset_id.try_typed::<LoadedFolder>() {
-                        if let Some(folder) = folder_assets.get(folder_id) {
-                            for handle in &folder.handles {
-                                if let Ok(level_handle) =
-                                    handle.clone().try_typed::<LevelDefinition>()
-                                {
-                                    // e.g. "levels/00_level_name.level.ron"
-                                    let path = level_handle.path().unwrap();
-                                    // e.g. "00_level_name.level"
-                                    let file_name =
-                                        path.path().file_stem().unwrap().to_str().unwrap();
-                                    let name =
-                                        file_name.strip_suffix(".level").unwrap_or(file_name);
-                                    children.button(name).observe(enter_level(level_handle));
-                                }
-                            }
-                        }
+            children
+                .spawn(NodeBundle {
+                    style: Style {
+                        flex_direction: FlexDirection::Row,
+                        justify_content: JustifyContent::SpaceEvenly,
+                        column_gap: Val::Px(3.0),
+                        ..default()
+                    },
+                    ..default()
+                })
+                .with_children(|columns| {
+                    for column_index in 0..3 {
+                        columns
+                            .spawn(NodeBundle {
+                                style: Style {
+                                    flex_direction: FlexDirection::Column,
+                                    align_items: AlignItems::Center,
+                                    padding: UiRect::all(Val::Px(10.0)),
+                                    margin: UiRect::all(Val::Px(15.0)),
+                                    row_gap: Val::Px(3.0),
+                                    ..default()
+                                },
+                                ..default()
+                            })
+                            .with_children(|column| {
+                                let mut button_count = 0;
+                                levels
+                                    .0
+                                    .visit_dependencies(&mut |asset_id: UntypedAssetId| {
+                                        if let Ok(folder_id) = asset_id.try_typed::<LoadedFolder>()
+                                        {
+                                            if let Some(folder) = folder_assets.get(folder_id) {
+                                                for handle in &folder.handles {
+                                                    if let Ok(level_handle) = handle
+                                                        .clone()
+                                                        .try_typed::<LevelDefinition>(
+                                                    ) {
+                                                        let path = level_handle.path().unwrap();
+                                                        let file_name = path
+                                                            .path()
+                                                            .file_stem()
+                                                            .unwrap()
+                                                            .to_str()
+                                                            .unwrap();
+                                                        let name = file_name
+                                                            .strip_suffix(".level")
+                                                            .unwrap_or(file_name);
+
+                                                        if button_count % 3 == column_index {
+                                                            column.button(name).observe(
+                                                                enter_level(level_handle.clone()),
+                                                            );
+                                                        }
+                                                        button_count += 1;
+                                                    }
+                                                }
+                                            }
+                                        }
+                                    });
+                            });
                     }
                 });
+
+            // levels
+            //     .0
+            //     .visit_dependencies(&mut |asset_id: UntypedAssetId| {
+            //         if let Ok(folder_id) = asset_id.try_typed::<LoadedFolder>() {
+            //             if let Some(folder) = folder_assets.get(folder_id) {
+            //                 for handle in &folder.handles {
+            //                     if let Ok(level_handle) =
+            //                         handle.clone().try_typed::<LevelDefinition>()
+            //                     {
+            //                         // e.g. "levels/00_level_name.level.ron"
+            //                         let path = level_handle.path().unwrap();
+            //                         // e.g. "00_level_name.level"
+            //                         let file_name =
+            //                             path.path().file_stem().unwrap().to_str().unwrap();
+            //                         let name =
+            //                             file_name.strip_suffix(".level").unwrap_or(file_name);
+            //                         children.button(name).observe(enter_level(level_handle));
+            //                     }
+            //                 }
+            //             }
+            //         }
+            //     });
         });
 }
 
