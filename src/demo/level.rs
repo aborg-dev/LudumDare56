@@ -89,7 +89,7 @@ impl FromWorld for WaveSound {
         Self {
             sound: assets.load("audio/sound_effects/wave_cleared.ogg"),
             win: assets.load("audio/sound_effects/win.ogg"),
-            lose: assets.load("audio/sound_effects/win.ogg"),
+            lose: assets.load("audio/sound_effects/lose.ogg"),
         }
     }
 }
