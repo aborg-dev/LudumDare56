@@ -381,7 +381,7 @@ impl CreatureAssets {
     pub const PATH_SNAKE: &'static str = "images/snake.png";
     pub const PATH_MOUSE: &'static str = "images/mouse.png";
     pub const PATH_WEASEL: &'static str = "images/weasel.png";
-    pub const PATH_HEDGEHOG: &'static str = "images/fox.png";
+    pub const PATH_HEDGEHOG: &'static str = "images/hedgehog.png";
     pub const PATH_BALL: &'static str = "images/ball.png";
     pub const PATH_DUST: &'static str = "images/dust.png";
     pub const PATH_STEP_1: &'static str = "audio/sound_effects/step1.ogg";
