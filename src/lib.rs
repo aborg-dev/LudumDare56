@@ -38,7 +38,7 @@ impl Plugin for AppPlugin {
                 })
                 .set(WindowPlugin {
                     primary_window: Window {
-                        title: "Ludum Dare56".to_string(),
+                        title: "Animal Arcade".to_string(),
                         canvas: Some("#bevy".to_string()),
                         fit_canvas_to_parent: false,
                         prevent_default_event_handling: true,

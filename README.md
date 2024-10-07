@@ -1,4 +1,4 @@
-# Ludum Dare 56
+# Animal Arcade
 
 This template is a great way to get started on a new 2D [Bevy](https://bevyengine.org/) game!
 Start with a [basic project structure](#write-your-game) and [CI / CD](#release-your-game) that can deploy to [itch.io](https://itch.io).
