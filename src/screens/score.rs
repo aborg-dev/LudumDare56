@@ -25,7 +25,7 @@ fn spawn_score_screen(mut commands: Commands, game_score: Res<GameScore>, assets
             } else {
                 format!("You've reached wave {}.\nTry again!", game_score.score)
             };
-            children.large_message(&message);
+            children.label_on_background(&message, 2);
 
             children.button("Restart").observe(enter_gameplay_screen);
             children.button("Menu").observe(enter_title_screen);

@@ -20,7 +20,7 @@ use std::time::Duration;
 use super::creature::Creature;
 use super::creature::DeathAnimation;
 
-const WAVE_DURATION: Duration = Duration::from_secs(0);
+const WAVE_DURATION: Duration = Duration::from_secs(20);
 
 #[derive(Resource, Debug, Clone, PartialEq, Reflect)]
 #[reflect(Resource)]
