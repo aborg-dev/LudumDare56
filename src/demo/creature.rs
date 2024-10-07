@@ -9,7 +9,6 @@ use bevy::{
     ecs::{system::RunSystemOnce as _, world::Command},
     prelude::*,
     render::texture::{ImageLoaderSettings, ImageSampler},
-    sprite::{MaterialMesh2dBundle, Mesh2dHandle},
     window::PrimaryWindow,
 };
 use rand::{distributions::Uniform, prelude::Distribution};
@@ -70,10 +69,24 @@ fn tick_bullets(time: Res<Time>, mut query: Query<&mut Bullet>) {
     }
 }
 
-fn update_bullet_animation(mut query: Query<(&Bullet, &mut Transform)>) {
-    for (bullet, mut transform) in &mut query.iter_mut() {
-        transform.scale =
-            Vec2::splat(1.0 - bullet.timer.elapsed_secs() / BULLET_DURATION_SEC).extend(1.0);
+fn update_bullet_animation(mut query: Query<(&Bullet, &mut Transform, &mut MovementController)>) {
+    for (bullet, mut transform, mut movement) in &mut query.iter_mut() {
+        // we are throwing a ball
+        // it should become smaller the further it is away and also adhere to gravity
+
+        // 1) Size
+        // use inverse linear approximation scale based on distance
+        let min_size = 0.4;
+        let scale = 1.0 - (1.0 - min_size) * bullet.timer.fraction();
+        transform.scale = Vec2::splat(scale).extend(1.0);
+
+        // 2) Gravity
+        // bounce up and down, following parabola formula 1-((2x-1)^2) on range [0,1]
+        // first derivative: -4x+2
+        let x = bullet.timer.fraction();
+        // lower height makes it appear / feel like a faster throw
+        let height = 0.4;
+        movement.intent.y = (2.0 - 4.0 * x) * height;
     }
 }
 
@@ -254,8 +267,6 @@ fn record_player_click_input(
     touches_input: Res<Touches>,
     window_query: Query<&Window, With<PrimaryWindow>>,
     camera_query: Query<(&Camera, &GlobalTransform)>,
-    mut meshes: ResMut<Assets<Mesh>>,
-    mut materials: ResMut<Assets<ColorMaterial>>,
     creature_assets: Res<CreatureAssets>,
     mut commands: Commands,
     bullets: Query<&Bullet>,
@@ -274,18 +285,17 @@ fn record_player_click_input(
             .or_else(|| touches_input.first_pressed_position())
             .and_then(|cursor| camera.viewport_to_world_2d(camera_global_transform, cursor))
         {
-            let color = Color::srgb(1.0, 0.0, 0.0);
             commands.spawn((
                 Name::new("Bullet"),
                 Bullet {
                     timer: Timer::from_seconds(BULLET_DURATION_SEC, TimerMode::Once),
                 },
-                MaterialMesh2dBundle {
-                    mesh: Mesh2dHandle(meshes.add(Annulus::new(90.0, 100.0))),
-                    material: materials.add(color),
+                SpriteBundle {
+                    texture: creature_assets.ball.clone(),
                     transform: Transform::from_translation(p.extend(2.0)),
-                    ..default()
+                    ..Default::default()
                 },
+                MovementController::default(),
             ));
             commands.spawn((
                 AudioBundle {
@@ -311,6 +321,8 @@ pub struct CreatureAssets {
     #[dependency]
     pub mouse: Handle<Image>,
     #[dependency]
+    pub ball: Handle<Image>,
+    #[dependency]
     pub steps: Vec<Handle<AudioSource>>,
     #[dependency]
     pub catch: Handle<AudioSource>,
@@ -327,6 +339,7 @@ impl CreatureAssets {
     pub const PATH_FOX: &'static str = "images/fox.png";
     pub const PATH_SNAKE: &'static str = "images/snake.png";
     pub const PATH_MOUSE: &'static str = "images/mouse.png";
+    pub const PATH_BALL: &'static str = "images/ball.png";
     pub const PATH_STEP_1: &'static str = "audio/sound_effects/step1.ogg";
     pub const PATH_STEP_2: &'static str = "audio/sound_effects/step2.ogg";
     pub const PATH_STEP_3: &'static str = "audio/sound_effects/step3.ogg";
@@ -369,6 +382,7 @@ impl FromWorld for CreatureAssets {
                     settings.sampler = ImageSampler::linear();
                 },
             ),
+            ball: assets.load(CreatureAssets::PATH_BALL),
             steps: vec![
                 assets.load(CreatureAssets::PATH_STEP_1),
                 assets.load(CreatureAssets::PATH_STEP_2),
