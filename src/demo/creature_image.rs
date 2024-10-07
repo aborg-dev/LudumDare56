@@ -6,6 +6,7 @@ use bevy::reflect::Reflect;
 pub(crate) enum CreatureImage {
     Fox,
     Snake,
+    Mouse,
     Duck,
 }
 
@@ -20,6 +21,7 @@ impl CreatureImage {
         match self {
             CreatureImage::Fox => UVec2::splat(256),
             CreatureImage::Snake => UVec2::splat(256),
+            CreatureImage::Mouse => UVec2::splat(256),
             CreatureImage::Duck => UVec2::splat(32),
         }
     }
@@ -33,6 +35,7 @@ impl CreatureImage {
         match self {
             CreatureImage::Fox => 2,
             CreatureImage::Snake => 2,
+            CreatureImage::Mouse => 2,
             CreatureImage::Duck => 6,
         }
     }
@@ -41,6 +44,7 @@ impl CreatureImage {
         match self {
             CreatureImage::Fox => 1,
             CreatureImage::Snake => 1,
+            CreatureImage::Mouse => 1,
             CreatureImage::Duck => 2,
         }
     }
