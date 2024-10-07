@@ -36,6 +36,10 @@ pub struct WaveCounter {
 pub struct WaveSound {
     #[dependency]
     sound: Handle<AudioSource>,
+    #[dependency]
+    win: Handle<AudioSource>,
+    #[dependency]
+    lose: Handle<AudioSource>,
 }
 
 #[derive(Debug, Resource, Clone, Reflect, Asset)]
@@ -83,7 +87,9 @@ impl FromWorld for WaveSound {
     fn from_world(world: &mut World) -> Self {
         let assets = world.resource::<AssetServer>();
         Self {
-            sound: assets.load("audio/sound_effects/wave_start.ogg"),
+            sound: assets.load("audio/sound_effects/wave_cleared.ogg"),
+            win: assets.load("audio/sound_effects/win.ogg"),
+            lose: assets.load("audio/sound_effects/win.ogg"),
         }
     }
 }
@@ -147,6 +153,13 @@ fn check_wave_spawn(
     if wave_counter.wave == 0 || creatures.iter().len() == 0 {
         // Last level done.
         let Some(level_handle) = level_handles.game_levels.get(wave_counter.wave as usize) else {
+            commands.spawn((
+                AudioBundle {
+                    source: sound.win.clone(),
+                    settings: PlaybackSettings::DESPAWN,
+                },
+                SoundEffect,
+            ));
             game_score.win = true;
             next_screen.set(Screen::Score);
             return;
@@ -175,10 +188,19 @@ fn check_wave_timer(
     mut next_screen: ResMut<NextState<Screen>>,
     timer: Res<WaveTimer>,
     alive_creatures: Query<&Creature, Without<DeathAnimation>>,
+    sound: Res<WaveSound>,
     mut game_score: ResMut<GameScore>,
+    mut commands: Commands,
 ) {
     // This means we've lost.
     if timer.0.just_finished() && !alive_creatures.is_empty() {
+        commands.spawn((
+            AudioBundle {
+                source: sound.lose.clone(),
+                settings: PlaybackSettings::DESPAWN,
+            },
+            SoundEffect,
+        ));
         game_score.win = false;
         next_screen.set(Screen::Score);
     }
