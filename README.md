@@ -8,6 +8,8 @@ This game was created during the [Ludum Dare 56](https://ldjam.com/events/ludum-
 
 ![screenshot 2](./screenshots/wave_6.png)
 
+![screenshot 3](./screenshots/shot_in_the_eye.png)
+
 ## Template
 
 We started from the bevy 2D template: https://github.com/TheBevyFlock/bevy_new_2d
