@@ -33,3 +33,21 @@ fn enter_credits_screen(_trigger: Trigger<OnPress>, mut next_screen: ResMut<Next
 fn exit_app(_trigger: Trigger<OnPress>, mut app_exit: EventWriter<AppExit>) {
     app_exit.send(AppExit::Success);
 }
+
+#[derive(Resource, Asset, Reflect, Clone)]
+pub struct BackgroundAssets {
+    #[dependency]
+    pub background: Handle<Image>,
+    #[dependency]
+    pub sign: Handle<Image>,
+}
+
+impl FromWorld for BackgroundAssets {
+    fn from_world(world: &mut World) -> Self {
+        let assets = world.resource::<AssetServer>();
+        Self {
+            background: assets.load("images/background.png"),
+            sign: assets.load("images/sign.png"),
+        }
+    }
+}

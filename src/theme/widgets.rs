@@ -10,7 +10,7 @@ pub trait Widgets {
     fn button(&mut self, text: impl Into<String>) -> EntityCommands;
 
     /// Spawn a simple header label. Bigger than [`Widgets::label`].
-    fn header(&mut self, text: impl Into<String>) -> EntityCommands;
+    fn header(&mut self, text: impl Into<String>, image: Handle<Image>) -> EntityCommands;
 
     /// Spawn a simple text label.
     fn label(&mut self, text: impl Into<String>) -> EntityCommands;
@@ -64,18 +64,18 @@ impl<T: Spawn> Widgets for T {
         entity
     }
 
-    fn header(&mut self, text: impl Into<String>) -> EntityCommands {
+    fn header(&mut self, text: impl Into<String>, image: Handle<Image>) -> EntityCommands {
         let mut entity = self.spawn((
             Name::new("Header"),
-            NodeBundle {
+            ImageBundle {
+                image: UiImage::new(image),
                 style: Style {
-                    width: Px(500.0),
-                    height: Px(65.0),
+                    width: Px(300.0),
+                    height: Px(200.0),
                     justify_content: JustifyContent::Center,
                     align_items: AlignItems::Center,
                     ..default()
                 },
-                background_color: BackgroundColor(THEME_VANILLA),
                 ..default()
             },
         ));
@@ -102,7 +102,7 @@ impl<T: Spawn> Widgets for T {
                 text,
                 TextStyle {
                     font_size: 24.0,
-                    color: THEME_VANILLA,
+                    color: THEME_VANILLA_DARK,
                     ..default()
                 },
             )
