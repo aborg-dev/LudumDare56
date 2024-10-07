@@ -116,7 +116,7 @@ impl FromWorld for GameplayMusic {
     fn from_world(world: &mut World) -> Self {
         let assets = world.resource::<AssetServer>();
         Self {
-            handle: assets.load("audio/music/Fluffing A Duck.ogg"),
+            handle: assets.load("audio/music/music.ogg"),
             entity: None,
         }
     }
@@ -128,7 +128,7 @@ fn play_gameplay_music(mut commands: Commands, mut music: ResMut<GameplayMusic>)
             .spawn((
                 AudioBundle {
                     source: music.handle.clone(),
-                    settings: PlaybackSettings::LOOP.with_volume(Volume::ZERO),
+                    settings: PlaybackSettings::LOOP.with_volume(Volume::new(0.3)),
                 },
                 Music,
             ))
