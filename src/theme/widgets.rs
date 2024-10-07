@@ -15,6 +15,8 @@ pub trait Widgets {
 
     /// Spawn a simple text label.
     fn label(&mut self, text: impl Into<String>) -> EntityCommands;
+    fn label_on_background(&mut self, text: impl Into<String>, item_count: usize)
+        -> EntityCommands;
 
     /// Spawn a large message.
     fn large_message(&mut self, text: impl Into<String>) -> EntityCommands;
@@ -125,6 +127,41 @@ impl<T: Spawn> Widgets for T {
         entity
     }
 
+    fn label_on_background(
+        &mut self,
+        text: impl Into<String>,
+        item_count: usize,
+    ) -> EntityCommands {
+        let mut entity = self.spawn((
+            Name::new("Header"),
+            NodeBundle {
+                style: Style {
+                    width: Px(500.0),
+                    height: Px(40.0 * item_count as f32),
+                    justify_content: JustifyContent::Center,
+                    align_items: AlignItems::Center,
+                    ..default()
+                },
+                background_color: BackgroundColor(THEME_VANILLA),
+                ..default()
+            },
+        ));
+        entity.with_children(|children| {
+            children.spawn((
+                Name::new("Header Text"),
+                TextBundle::from_section(
+                    text,
+                    TextStyle {
+                        font_size: 24.0,
+                        color: THEME_VANILLA_DARK,
+                        ..default()
+                    },
+                ),
+            ));
+        });
+        entity
+    }
+
     fn large_message(&mut self, text: impl Into<String>) -> EntityCommands {
         let entity = self.spawn((
             Name::new("Large Message"),
@@ -132,7 +169,7 @@ impl<T: Spawn> Widgets for T {
                 text,
                 TextStyle {
                     font_size: 48.0,
-                    color: THEME_VANILLA_DARK,
+                    color: Color::BLACK,
                     ..default()
                 },
             )

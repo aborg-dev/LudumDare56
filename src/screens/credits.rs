@@ -20,14 +20,13 @@ fn spawn_credits_screen(mut commands: Commands, assets: Res<UiAssets>) {
         .insert(StateScoped(Screen::Credits))
         .with_children(|children| {
             children.header("Made by", &assets);
-            children.label("Jakob Meier - Coding");
-            children.label("Andrew Borg - Coding");
-            children.label("Martin Villavicencio - Art");
+            children.label_on_background(
+                "Jakob Meier - Coding\nAndrew Borg - Coding\nMartin Villavicencio - Art",
+                3,
+            );
 
             children.header("Assets", &assets);
-            children.label("Button SFX - CC0 by Jaszunio15");
-            children.label("Gameplay SFX - lovely people at Freesound");
-            children.label("Music - by JewelBeat");
+            children.label_on_background("Button SFx - CC0 by Jaszunio15\nGameplay SFx - lovely people at Freesound\nMusic - by JewelBeat", 3);
 
             children.button("Back").observe(enter_title_screen);
         });
