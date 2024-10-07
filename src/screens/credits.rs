@@ -25,7 +25,6 @@ fn spawn_credits_screen(mut commands: Commands, assets: Res<UiAssets>) {
             children.label("Martin Villavicencio - Art");
 
             children.header("Assets", &assets);
-            children.label("Bevy logo - All rights reserved by the Bevy Foundation. Permission granted for splash screen use when unmodified.");
             children.label("Button SFX - CC0 by Jaszunio15");
             children.label("Gameplay SFX - lovely people at Freesound");
             children.label("Music - by JewelBeat");
