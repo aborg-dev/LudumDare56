@@ -1,0 +1,39 @@
+LevelDefinition(
+    creatures: [
+        CreatureDefinition (
+            image: Fox,
+            max_speed: 450.0,
+            movement: Constant ( speed: Vec2(0.0, 1.0) )
+        ),
+        CreatureDefinition (
+            image: Fox,
+            max_speed: 450.0,
+            movement: Constant ( speed: Vec2(-0.05, 1.0) )
+        ),
+        CreatureDefinition (
+            image: Fox,
+            max_speed: 600.0,
+            movement: Constant ( speed: Vec2(0.05, 1.0) )
+        ),
+        CreatureDefinition (
+            image: Fox,
+            max_speed: 600.0,
+            movement: Constant ( speed: Vec2(0.05, 1.0) )
+        ),
+        CreatureDefinition (
+            image: Fox,
+            max_speed: 450.0,
+            movement: Constant ( speed: Vec2(0.01, 1.0) )
+        ),
+        CreatureDefinition (
+            image: Fox,
+            max_speed: 300.0,
+            movement: Constant ( speed: Vec2(1.0, 0.05) )
+        ),
+        CreatureDefinition (
+            image: Fox,
+            max_speed: 300.0,
+            movement: Constant ( speed: Vec2(1.0, -0.05) )
+        ),
+    ]
+)

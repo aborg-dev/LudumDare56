@@ -1,14 +1,17 @@
 LevelDefinition(
     creatures: [
         CreatureDefinition (
+            image: Hedgehog,
             max_speed: 100.0,
             movement: Constant ( speed: Vec2(0.53, 1.0) )
         ),
         CreatureDefinition (
+            image: Hedgehog,
             max_speed: 200.0,
             movement: Constant ( speed: Vec2(0.0, -1.0) )
         ),
         CreatureDefinition (
+            image: Hedgehog,
             max_speed: 100.0,
             movement: Constant ( speed: Vec2(0.1, 0.0) )
         ),

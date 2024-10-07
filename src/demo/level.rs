@@ -69,10 +69,13 @@ impl FromWorld for Levels {
             "levels/01_more_easy_creatures.level.ron",
             "levels/02_few_periodic.level.ron",
             "levels/03_mixed_periodic.level.ron",
+            "levels/03.5_mouse.level.ron",
             "levels/04_mixed_circles.level.ron",
             "levels/05.level.ron",
             "levels/06.level.ron",
+            "levels/06.5_fox.level.ron",
             "levels/07.level.ron",
+            "levels/08_one_of_all.level.ron",
         ];
         Levels {
             game_levels: levels

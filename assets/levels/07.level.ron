@@ -1,42 +1,52 @@
 LevelDefinition(
     creatures: [
         CreatureDefinition (
+            image: Hedgehog,
             max_speed: 100.0,
             movement: Constant ( speed: Vec2(0.3, -1.0) )
         ),
         CreatureDefinition (
+            image: Hedgehog,
             max_speed: 200.0,
             movement: Constant ( speed: Vec2(0.5, -1.0) )
         ),
         CreatureDefinition (
+            image: Fox,
             max_speed: 100.0,
             movement: Constant ( speed: Vec2(0.1, 0.0) )
         ),
         CreatureDefinition (
+            image: Hedgehog,
             max_speed: 100.0,
             movement: Constant ( speed: Vec2(0.5, -0.2) )
         ),
         CreatureDefinition (
+            image: Hedgehog,
             max_speed: 100.0,
             movement: Constant ( speed: Vec2(-0.75, 0.25) )
         ),
         CreatureDefinition (
+            image: Hedgehog,
             max_speed: 100.0,
             movement: Constant ( speed: Vec2(0.15, 0.4) )
         ),
         CreatureDefinition (
+            image: Fox,
             max_speed: 600.0,
             movement: Constant ( speed: Vec2(0.0, 1.0) )
         ),
         CreatureDefinition (
+            image: Fox,
             max_speed: 600.0,
             movement: Constant ( speed: Vec2(-0.05, 1.0) )
         ),
         CreatureDefinition (
+            image: Fox,
             max_speed: 600.0,
             movement: Constant ( speed: Vec2(0.05, 1.0) )
         ),
         CreatureDefinition (
+            image: Fox,
             max_speed: 600.0,
             movement: Constant ( speed: Vec2(0.01, 1.0) )
         ),
