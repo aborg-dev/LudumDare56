@@ -76,6 +76,10 @@ impl FromWorld for Levels {
             "levels/06.5_fox.level.ron",
             "levels/07.level.ron",
             "levels/08_one_of_all.level.ron",
+            "levels/09_two_weasels.level.ron",
+            "levels/10_three_weasels.level.ron",
+            "levels/11_four_weasels.level.ron",
+            "levels/12.level.ron",
         ];
         Levels {
             game_levels: levels
