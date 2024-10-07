@@ -251,6 +251,8 @@ fn spawn_creature(
         CreatureImage::Fox => creature_assets.fox.clone(),
         CreatureImage::Snake => creature_assets.snake.clone(),
         CreatureImage::Mouse => creature_assets.mouse.clone(),
+        CreatureImage::Hedgehog => creature_assets.hedgehog.clone(),
+        CreatureImage::Weasel => creature_assets.weasel.clone(),
         CreatureImage::Duck => creature_assets.ducky.clone(),
     };
 
@@ -354,6 +356,10 @@ pub struct CreatureAssets {
     #[dependency]
     pub mouse: Handle<Image>,
     #[dependency]
+    pub weasel: Handle<Image>,
+    #[dependency]
+    pub hedgehog: Handle<Image>,
+    #[dependency]
     pub ball: Handle<Image>,
     #[dependency]
     pub dust: Handle<Image>,
@@ -374,6 +380,8 @@ impl CreatureAssets {
     pub const PATH_FOX: &'static str = "images/fox.png";
     pub const PATH_SNAKE: &'static str = "images/snake.png";
     pub const PATH_MOUSE: &'static str = "images/mouse.png";
+    pub const PATH_WEASEL: &'static str = "images/weasel.png";
+    pub const PATH_HEDGEHOG: &'static str = "images/fox.png";
     pub const PATH_BALL: &'static str = "images/ball.png";
     pub const PATH_DUST: &'static str = "images/dust.png";
     pub const PATH_STEP_1: &'static str = "audio/sound_effects/step1.ogg";
@@ -413,6 +421,20 @@ impl FromWorld for CreatureAssets {
             ),
             mouse: assets.load_with_settings(
                 CreatureAssets::PATH_MOUSE,
+                |settings: &mut ImageLoaderSettings| {
+                    // Use `nearest` image sampling to preserve the pixel art style.
+                    settings.sampler = ImageSampler::linear();
+                },
+            ),
+            hedgehog: assets.load_with_settings(
+                CreatureAssets::PATH_HEDGEHOG,
+                |settings: &mut ImageLoaderSettings| {
+                    // Use `nearest` image sampling to preserve the pixel art style.
+                    settings.sampler = ImageSampler::linear();
+                },
+            ),
+            weasel: assets.load_with_settings(
+                CreatureAssets::PATH_WEASEL,
                 |settings: &mut ImageLoaderSettings| {
                     // Use `nearest` image sampling to preserve the pixel art style.
                     settings.sampler = ImageSampler::linear();

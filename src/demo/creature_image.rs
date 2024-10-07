@@ -7,6 +7,8 @@ pub(crate) enum CreatureImage {
     Fox,
     Snake,
     Mouse,
+    Weasel,
+    Hedgehog,
     Duck,
 }
 
@@ -22,6 +24,8 @@ impl CreatureImage {
             CreatureImage::Fox => UVec2::splat(256),
             CreatureImage::Snake => UVec2::splat(256),
             CreatureImage::Mouse => UVec2::splat(256),
+            CreatureImage::Weasel => UVec2::splat(256),
+            CreatureImage::Hedgehog => UVec2::splat(256),
             CreatureImage::Duck => UVec2::splat(32),
         }
     }
@@ -36,6 +40,8 @@ impl CreatureImage {
             CreatureImage::Fox => 2,
             CreatureImage::Snake => 2,
             CreatureImage::Mouse => 2,
+            CreatureImage::Weasel => 2,
+            CreatureImage::Hedgehog => 2,
             CreatureImage::Duck => 6,
         }
     }
@@ -45,6 +51,8 @@ impl CreatureImage {
             CreatureImage::Fox => 1,
             CreatureImage::Snake => 1,
             CreatureImage::Mouse => 1,
+            CreatureImage::Hedgehog => 1,
+            CreatureImage::Weasel => 1,
             CreatureImage::Duck => 2,
         }
     }
