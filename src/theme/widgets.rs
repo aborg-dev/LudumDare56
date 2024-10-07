@@ -19,7 +19,7 @@ pub trait Widgets {
         -> EntityCommands;
 
     /// Spawn a large message.
-    fn large_message(&mut self, text: impl Into<String>) -> EntityCommands;
+    fn large_message(&mut self, text: impl Into<String>, asset: &UiAssets) -> EntityCommands;
 }
 
 impl<T: Spawn> Widgets for T {
@@ -162,21 +162,18 @@ impl<T: Spawn> Widgets for T {
         entity
     }
 
-    fn large_message(&mut self, text: impl Into<String>) -> EntityCommands {
+    fn large_message(&mut self, text: impl Into<String>, asset: &UiAssets) -> EntityCommands {
         let entity = self.spawn((
             Name::new("Large Message"),
             TextBundle::from_section(
                 text,
                 TextStyle {
-                    font_size: 48.0,
+                    font_size: 128.0,
                     color: Color::BLACK,
+                    font: asset.font.clone(),
                     ..default()
                 },
-            )
-            .with_style(Style {
-                width: Px(700.0),
-                ..default()
-            }),
+            ),
         ));
         entity
     }

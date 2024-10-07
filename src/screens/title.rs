@@ -18,6 +18,8 @@ fn spawn_title_screen(mut commands: Commands, assets: Res<UiAssets>) {
         .ui_root()
         .insert(StateScoped(Screen::Title))
         .with_children(|children| {
+            children.large_message("Animal Arcade", &assets);
+
             children.button("Play").observe(enter_gameplay_screen);
             children.button("Credits").observe(enter_credits_screen);
 
