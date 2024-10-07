@@ -2,6 +2,7 @@
 
 use bevy::{ecs::system::EntityCommands, prelude::*, ui::Val::*};
 
+use crate::screens::UiAssets;
 use crate::theme::{interaction::InteractionPalette, palette::*};
 
 /// An extension trait for spawning UI widgets.
@@ -10,7 +11,7 @@ pub trait Widgets {
     fn button(&mut self, text: impl Into<String>) -> EntityCommands;
 
     /// Spawn a simple header label. Bigger than [`Widgets::label`].
-    fn header(&mut self, text: impl Into<String>, image: Handle<Image>) -> EntityCommands;
+    fn header(&mut self, text: impl Into<String>, asset: &UiAssets) -> EntityCommands;
 
     /// Spawn a simple text label.
     fn label(&mut self, text: impl Into<String>) -> EntityCommands;
@@ -64,11 +65,11 @@ impl<T: Spawn> Widgets for T {
         entity
     }
 
-    fn header(&mut self, text: impl Into<String>, image: Handle<Image>) -> EntityCommands {
+    fn header(&mut self, text: impl Into<String>, asset: &UiAssets) -> EntityCommands {
         let mut entity = self.spawn((
             Name::new("Header"),
             ImageBundle {
-                image: UiImage::new(image),
+                image: UiImage::new(asset.sign.clone()),
                 style: Style {
                     width: Px(256.0),
                     height: Px(100.0),
@@ -85,9 +86,9 @@ impl<T: Spawn> Widgets for T {
                 TextBundle::from_section(
                     text,
                     TextStyle {
-                        font_size: 32.0,
+                        font_size: 48.0,
                         color: THEME_ASPARAGUS_DARK,
-                        ..default()
+                        font: asset.font.clone(),
                     },
                 ),
             ));

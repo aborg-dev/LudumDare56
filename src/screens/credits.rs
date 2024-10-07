@@ -4,7 +4,7 @@ use bevy::prelude::*;
 
 use crate::{asset_tracking::LoadResource, audio::Music, screens::Screen, theme::prelude::*};
 
-use super::title::BackgroundAssets;
+use super::title::UiAssets;
 
 pub(super) fn plugin(app: &mut App) {
     app.add_systems(OnEnter(Screen::Credits), spawn_credits_screen);
@@ -14,17 +14,17 @@ pub(super) fn plugin(app: &mut App) {
     app.add_systems(OnExit(Screen::Credits), stop_music);
 }
 
-fn spawn_credits_screen(mut commands: Commands, assets: Res<BackgroundAssets>) {
+fn spawn_credits_screen(mut commands: Commands, assets: Res<UiAssets>) {
     commands
         .ui_root()
         .insert(StateScoped(Screen::Credits))
         .with_children(|children| {
-            children.header("Made by", assets.sign.clone());
+            children.header("Made by", &assets);
             children.label("Jakob Meier - Coding");
             children.label("Andrew Borg - Coding");
             children.label("Martin Villavicencio - Art");
 
-            children.header("Assets", assets.sign.clone());
+            children.header("Assets", &assets);
             children.label("Bevy logo - All rights reserved by the Bevy Foundation. Permission granted for splash screen use when unmodified.");
             children.label("Button SFX - CC0 by Jaszunio15");
             children.label("Gameplay SFX - lovely people at Freesound");

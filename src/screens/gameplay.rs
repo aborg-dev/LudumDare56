@@ -6,14 +6,14 @@ use bevy::audio::Volume;
 use bevy::window::PrimaryWindow;
 use bevy::{input::common_conditions::input_just_pressed, prelude::*};
 
-use super::title::BackgroundAssets;
+use super::title::UiAssets;
 use crate::{asset_tracking::LoadResource, audio::Music, screens::Screen};
 
 pub const HEADER_SIZE: f32 = 65.0;
 
 pub(super) fn plugin(app: &mut App) {
     app.load_resource::<GameplayMusic>();
-    app.load_resource::<BackgroundAssets>();
+    app.load_resource::<UiAssets>();
     app.init_resource::<DevGameplay>();
     app.add_systems(
         OnEnter(Screen::Gameplay),
@@ -72,7 +72,7 @@ fn update_wave_number(
     }
 }
 
-fn spawn_game_background(mut commands: Commands, assets: Res<BackgroundAssets>) {
+fn spawn_game_background(mut commands: Commands, assets: Res<UiAssets>) {
     commands
         .spawn(SpriteBundle {
             texture: assets.background.clone(),
@@ -85,11 +85,11 @@ fn spawn_game_background(mut commands: Commands, assets: Res<BackgroundAssets>) 
         .insert(StateScoped(Screen::Gameplay))
         .with_children(|children| {
             children
-                .header("Time left: 30s".to_owned(), assets.sign.clone())
+                .header("Time left: 30s".to_owned(), &assets)
                 .insert(WaveTimerLabel);
 
             children
-                .header("Wave: 1".to_owned(), assets.sign.clone())
+                .header("Wave: 1".to_owned(), &assets)
                 .insert(WaveNumber);
         });
 }

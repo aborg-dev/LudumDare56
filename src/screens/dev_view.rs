@@ -4,7 +4,7 @@ use crate::{screens::Screen, theme::prelude::*};
 use bevy::asset::{LoadedFolder, UntypedAssetId, VisitAssetDependencies};
 use bevy::prelude::*;
 
-use super::title::BackgroundAssets;
+use super::title::UiAssets;
 
 pub(super) fn plugin(app: &mut App) {
     app.add_systems(OnEnter(Screen::Dev), spawn_dev_screen);
@@ -15,13 +15,13 @@ fn spawn_dev_screen(
     mut commands: Commands,
     levels: Res<LevelsFolder>,
     folder_assets: Res<Assets<LoadedFolder>>,
-    assets: Res<BackgroundAssets>,
+    assets: Res<UiAssets>,
 ) {
     commands
         .ui_root()
         .insert(StateScoped(Screen::Dev))
         .with_children(|children| {
-            children.header("Developer Settings", assets.sign.clone());
+            children.header("Developer Settings", &assets);
 
             children
                 .button("Back to game")

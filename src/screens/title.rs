@@ -35,19 +35,22 @@ fn exit_app(_trigger: Trigger<OnPress>, mut app_exit: EventWriter<AppExit>) {
 }
 
 #[derive(Resource, Asset, Reflect, Clone)]
-pub struct BackgroundAssets {
+pub struct UiAssets {
     #[dependency]
     pub background: Handle<Image>,
     #[dependency]
     pub sign: Handle<Image>,
+    #[dependency]
+    pub font: Handle<Font>,
 }
 
-impl FromWorld for BackgroundAssets {
+impl FromWorld for UiAssets {
     fn from_world(world: &mut World) -> Self {
         let assets = world.resource::<AssetServer>();
         Self {
             background: assets.load("images/background.png"),
             sign: assets.load("images/sign.png"),
+            font: assets.load("fonts/StyleScript-Regular.ttf"),
         }
     }
 }

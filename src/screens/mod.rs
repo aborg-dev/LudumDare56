@@ -10,6 +10,7 @@ mod title;
 
 use bevy::prelude::*;
 pub use gameplay::GameplayArea;
+pub use title::UiAssets;
 
 use crate::theme::palette::THEME_VANILLA;
 
