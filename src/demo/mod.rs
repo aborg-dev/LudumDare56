@@ -8,6 +8,7 @@ use bevy::prelude::*;
 mod animation;
 pub mod creature;
 pub mod creature_image;
+mod custom_cursor;
 mod dust;
 pub mod level;
 mod movement;
@@ -20,5 +21,6 @@ pub(super) fn plugin(app: &mut App) {
         creature::plugin,
         level::plugin,
         movement_pattern::plugin,
+        custom_cursor::plugin,
     ));
 }

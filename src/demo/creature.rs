@@ -26,8 +26,8 @@ use crate::{
 };
 
 use super::{
-    creature_image::CreatureImage, dust::DustAnimation, movement::ScreenWrap,
-    movement_pattern::MovementPatternDefinition,
+    creature_image::CreatureImage, custom_cursor::HideGameCursor, dust::DustAnimation,
+    movement::ScreenWrap, movement_pattern::MovementPatternDefinition,
 };
 
 const BULLET_DURATION_SEC: f32 = 0.3;
@@ -304,6 +304,8 @@ fn record_player_click_input(
     // There can be only one bullet at a time.
     if !bullets.is_empty() {
         return;
+    } else {
+        commands.insert_resource(HideGameCursor(false));
     }
 
     let (camera, camera_global_transform) = camera_query.single();
@@ -334,6 +336,7 @@ fn record_player_click_input(
                 },
                 SoundEffect,
             ));
+            commands.insert_resource(HideGameCursor(true));
         }
     }
 }
