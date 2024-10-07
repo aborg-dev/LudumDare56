@@ -41,9 +41,8 @@ pub(super) fn plugin(app: &mut App) {
 /// The game's main screen states.
 #[derive(States, Debug, Hash, PartialEq, Eq, Clone, Default)]
 pub enum Screen {
-    Splash,
-    // TODO: Revert to splash on release.
     #[default]
+    Splash,
     Loading,
     Title,
     Credits,

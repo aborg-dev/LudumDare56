@@ -131,8 +131,6 @@ fn process_bullets_landing(
         ));
     }
 
-    // TODO: Add a sound effect on hit.
-
     for (bullet_entity, _) in hits {
         commands.entity(bullet_entity).despawn();
     }
