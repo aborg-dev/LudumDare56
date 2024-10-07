@@ -45,17 +45,41 @@ fn trigger_on_press(
 
 fn apply_interaction_palette(
     mut palette_query: Query<
-        (&Interaction, &InteractionPalette, &mut BackgroundColor),
+        (
+            &Interaction,
+            &InteractionPalette,
+            &mut BackgroundColor,
+            &Children,
+        ),
         Changed<Interaction>,
     >,
+    mut text_query: Query<&mut Text>,
+    mut interaction_query: Query<&InteractionPalette>,
 ) {
-    for (interaction, palette, mut background) in &mut palette_query {
+    for (interaction, palette, mut background, children) in &mut palette_query {
         *background = match interaction {
             Interaction::None => palette.none,
             Interaction::Hovered => palette.hovered,
             Interaction::Pressed => palette.pressed,
         }
         .into();
+
+        // bevy ui doesn't support interaction on text element,
+        // so we inherit interactino from the button and then use
+        // additional queries to adjust the color of text elements
+        for child in children {
+            if let Ok(mut text) = text_query.get_mut(*child) {
+                if let Ok(palette) = interaction_query.get_mut(*child) {
+                    for section in &mut text.sections {
+                        section.style.color = match interaction {
+                            Interaction::None => palette.none,
+                            Interaction::Hovered => palette.hovered,
+                            Interaction::Pressed => palette.pressed,
+                        };
+                    }
+                }
+            }
+        }
     }
 }
 

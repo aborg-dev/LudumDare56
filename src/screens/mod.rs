@@ -11,7 +11,7 @@ mod title;
 use bevy::prelude::*;
 pub use gameplay::GameplayArea;
 
-use crate::theme::palette::THEME_MALACHITE_DARK;
+use crate::theme::palette::THEME_VANILLA;
 
 #[derive(Resource, Reflect, Clone, Default)]
 pub struct GameScore {
@@ -25,7 +25,7 @@ pub(super) fn plugin(app: &mut App) {
 
     // Accessed in gameplay and score screen.
     app.insert_resource(GameScore::default());
-    app.insert_resource(ClearColor(THEME_MALACHITE_DARK));
+    app.insert_resource(ClearColor(THEME_VANILLA));
 
     app.add_plugins((
         credits::plugin,

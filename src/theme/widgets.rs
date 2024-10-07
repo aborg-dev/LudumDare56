@@ -29,15 +29,17 @@ impl<T: Spawn> Widgets for T {
                     height: Px(65.0),
                     justify_content: JustifyContent::Center,
                     align_items: AlignItems::Center,
+                    border: UiRect::all(Val::Px(8.0)),
                     ..default()
                 },
-                background_color: BackgroundColor(THEME_RED_DARK),
+                background_color: BackgroundColor(THEME_VANILLA_DARK),
+                border_color: BorderColor(THEME_VANILLA_DARK),
                 ..default()
             },
             InteractionPalette {
-                none: THEME_RED_DARK,
-                hovered: THEME_RED,
-                pressed: THEME_VANILLA,
+                none: THEME_VANILLA_DARK,
+                hovered: THEME_VANILLA,
+                pressed: THEME_RED_DARK,
             },
         ));
         entity.with_children(|children| {
@@ -51,6 +53,11 @@ impl<T: Spawn> Widgets for T {
                         ..default()
                     },
                 ),
+                InteractionPalette {
+                    none: THEME_VANILLA,
+                    hovered: THEME_VANILLA_DARK,
+                    pressed: THEME_VANILLA_DARK,
+                },
             ));
         });
 
@@ -79,7 +86,7 @@ impl<T: Spawn> Widgets for T {
                     text,
                     TextStyle {
                         font_size: 40.0,
-                        color: THEME_ASPARAGUS_DARK,
+                        color: THEME_VANILLA_DARK,
                         ..default()
                     },
                 ),
@@ -114,7 +121,7 @@ impl<T: Spawn> Widgets for T {
                 text,
                 TextStyle {
                     font_size: 48.0,
-                    color: THEME_VANILLA,
+                    color: THEME_VANILLA_DARK,
                     ..default()
                 },
             )
