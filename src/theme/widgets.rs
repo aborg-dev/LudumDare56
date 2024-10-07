@@ -70,8 +70,8 @@ impl<T: Spawn> Widgets for T {
             ImageBundle {
                 image: UiImage::new(image),
                 style: Style {
-                    width: Px(300.0),
-                    height: Px(200.0),
+                    width: Px(256.0),
+                    height: Px(100.0),
                     justify_content: JustifyContent::Center,
                     align_items: AlignItems::Center,
                     ..default()
@@ -85,8 +85,8 @@ impl<T: Spawn> Widgets for T {
                 TextBundle::from_section(
                     text,
                     TextStyle {
-                        font_size: 40.0,
-                        color: THEME_VANILLA_DARK,
+                        font_size: 32.0,
+                        color: THEME_ASPARAGUS_DARK,
                         ..default()
                     },
                 ),
@@ -169,7 +169,7 @@ impl Containers for Commands<'_, '_> {
             NodeBundle {
                 style: Style {
                     width: Percent(100.0),
-                    height: Percent(5.0),
+                    height: Px(100.0),
                     justify_content: JustifyContent::Center,
                     align_items: AlignItems::Center,
                     flex_direction: FlexDirection::Row,
