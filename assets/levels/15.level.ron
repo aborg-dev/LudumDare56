@@ -1,0 +1,81 @@
+LevelDefinition(
+    creatures: [
+        CreatureDefinition (
+            image: Weasel,
+            max_speed: 300.0,
+            movement: Circle ( radius: 0.3, duration_ms: 3000 )
+        ),
+        CreatureDefinition (
+            image: Snake,
+            max_speed: 200.0,
+            movement: Periodic ( max_speed: Vec2(1.0, 1.0), duration_ms: 2500 )
+        ),
+        CreatureDefinition (
+            image: Fox,
+            max_speed: 500.0,
+            movement: Constant ( speed: Vec2(0.0, 1.0) )
+        ),
+        CreatureDefinition (
+            image: Hedgehog,
+            max_speed: 300.0,
+            movement: Constant ( speed: Vec2(0.15, 0.4) )
+        ),
+        CreatureDefinition (
+            image: Mouse,
+            max_speed: 500.0,
+            movement: Circle ( radius: 0.15, duration_ms: 1000 )
+        ),
+        
+        CreatureDefinition (
+            image: Weasel,
+            max_speed: 600.0,
+            movement: Circle ( radius: 0.3, duration_ms: 4000 )
+        ),
+        CreatureDefinition (
+            image: Snake,
+            max_speed: 400.0,
+            movement: Periodic ( max_speed: Vec2(1.0, 1.0), duration_ms: 2500 )
+        ),
+        CreatureDefinition (
+            image: Fox,
+            max_speed: 1000.0,
+            movement: Constant ( speed: Vec2(-0.3, 1.25) )
+        ),
+        CreatureDefinition (
+            image: Hedgehog,
+            max_speed: 600.0,
+            movement: Constant ( speed: Vec2(-0.25, 0.6) )
+        ),
+        CreatureDefinition (
+            image: Mouse,
+            max_speed: 1000.0,
+            movement: Circle ( radius: 0.15, duration_ms: 1000 )
+        ),
+
+        CreatureDefinition (
+            image: Weasel,
+            max_speed: 900.0,
+            movement: Circle ( radius: 0.3, duration_ms: 5000 )
+        ),
+        CreatureDefinition (
+            image: Snake,
+            max_speed: 600.0,
+            movement: Periodic ( max_speed: Vec2(1.0, 1.0), duration_ms: 2500 )
+        ),
+        CreatureDefinition (
+            image: Fox,
+            max_speed: 1500.0,
+            movement: Constant ( speed: Vec2(0.0, -1.0) )
+        ),
+        CreatureDefinition (
+            image: Hedgehog,
+            max_speed: 900.0,
+            movement: Constant ( speed: Vec2(0.15, -0.4) )
+        ),
+        CreatureDefinition (
+            image: Mouse,
+            max_speed: 1500.0,
+            movement: Circle ( radius: 0.15, duration_ms: 1000 )
+        ),
+    ]
+)
