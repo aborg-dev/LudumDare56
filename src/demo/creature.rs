@@ -11,7 +11,7 @@ use bevy::{
     render::texture::{ImageLoaderSettings, ImageSampler},
     window::PrimaryWindow,
 };
-use rand::{distributions::Uniform, prelude::Distribution};
+use rand::{distributions::Uniform, prelude::Distribution, Rng};
 
 use crate::{
     asset_tracking::LoadResource,
@@ -21,12 +21,12 @@ use crate::{
         movement::{MovementController, ScreenBounce},
         movement_pattern::MovementPattern,
     },
-    screens::Screen,
+    screens::{GameplayArea, Screen},
     AppSet,
 };
 
 use super::{
-    creature_image::CreatureImage, movement::ScreenWrap,
+    creature_image::CreatureImage, dust::DustAnimation, movement::ScreenWrap,
     movement_pattern::MovementPatternDefinition,
 };
 
@@ -53,6 +53,7 @@ pub(super) fn plugin(app: &mut App) {
             (
                 update_bullet_animation,
                 process_bullets_landing,
+                process_bullets_falling.run_if(in_state(Screen::Gameplay)),
                 end_game_on_too_many_creatures,
             )
                 .chain()
@@ -61,6 +62,8 @@ pub(super) fn plugin(app: &mut App) {
             reaper,
         ),
     );
+
+    DustAnimation::init(app);
 }
 
 fn tick_bullets(time: Res<Time>, mut query: Query<&mut Bullet>) {
@@ -69,7 +72,12 @@ fn tick_bullets(time: Res<Time>, mut query: Query<&mut Bullet>) {
     }
 }
 
-fn update_bullet_animation(mut query: Query<(&Bullet, &mut Transform, &mut MovementController)>) {
+fn update_bullet_animation(
+    mut query: Query<
+        (&Bullet, &mut Transform, &mut MovementController),
+        Without<FallingBulletMarker>,
+    >,
+) {
     for (bullet, mut transform, mut movement) in &mut query.iter_mut() {
         // we are throwing a ball
         // it should become smaller the further it is away and also adhere to gravity
@@ -90,22 +98,45 @@ fn update_bullet_animation(mut query: Query<(&Bullet, &mut Transform, &mut Movem
     }
 }
 
+fn process_bullets_falling(
+    mut bullets: Query<(Entity, &Transform, &mut MovementController), With<FallingBulletMarker>>,
+    mut commands: Commands,
+    gameplay_area: Res<GameplayArea>,
+    time: Res<Time>,
+) {
+    // remove bullets when they are out of the screen
+    for (entity, transform, mut movement) in &mut bullets {
+        if transform.translation.y < gameplay_area.main_area.min.y {
+            commands.entity(entity).despawn();
+        } else {
+            let acceleration = 0.02;
+            movement.intent.y -= time.delta().as_millis() as f32 * acceleration;
+        }
+    }
+}
+
 fn process_bullets_landing(
     creatures: Query<
         (Entity, &Transform, &CreatureImage),
         (With<Creature>, Without<DeathAnimation>),
     >,
-    bullets: Query<(Entity, &Bullet, &Transform)>,
+    mut bullets: Query<(Entity, &Bullet, &Transform, &mut MovementController)>,
     mut commands: Commands,
     creature_assets: Res<CreatureAssets>,
 ) {
     let mut hits = Vec::new();
-    for (entity, bullet, transform) in bullets.iter() {
-        if !bullet.timer.finished() {
+    let rng = &mut rand::thread_rng();
+    for (entity, bullet, transform, mut movement) in &mut bullets {
+        if !bullet.timer.just_finished() {
             continue;
         }
-
+        DustAnimation::spawn(&mut commands, &creature_assets, transform.translation.xy());
         hits.push((entity, transform.translation.xy()));
+        commands.entity(entity).insert(FallingBulletMarker);
+        // bounce up
+        movement.intent.y = 3.0;
+        // and randomly to the side
+        movement.intent.x = rng.sample(Uniform::new(-1.0, 1.0));
     }
     if hits.is_empty() {
         return;
@@ -143,10 +174,6 @@ fn process_bullets_landing(
             },
             SoundEffect,
         ));
-    }
-
-    for (bullet_entity, _) in hits {
-        commands.entity(bullet_entity).despawn();
     }
 }
 
@@ -262,6 +289,9 @@ struct Bullet {
     pub timer: Timer,
 }
 
+#[derive(Component, Clone, Reflect, Default)]
+struct FallingBulletMarker;
+
 fn record_player_click_input(
     input: Res<ButtonInput<MouseButton>>,
     touches_input: Res<Touches>,
@@ -269,7 +299,7 @@ fn record_player_click_input(
     camera_query: Query<(&Camera, &GlobalTransform)>,
     creature_assets: Res<CreatureAssets>,
     mut commands: Commands,
-    bullets: Query<&Bullet>,
+    bullets: Query<&Bullet, Without<FallingBulletMarker>>,
 ) {
     // There can be only one bullet at a time.
     if !bullets.is_empty() {
@@ -323,6 +353,8 @@ pub struct CreatureAssets {
     #[dependency]
     pub ball: Handle<Image>,
     #[dependency]
+    pub dust: Handle<Image>,
+    #[dependency]
     pub steps: Vec<Handle<AudioSource>>,
     #[dependency]
     pub catch: Handle<AudioSource>,
@@ -340,6 +372,7 @@ impl CreatureAssets {
     pub const PATH_SNAKE: &'static str = "images/snake.png";
     pub const PATH_MOUSE: &'static str = "images/mouse.png";
     pub const PATH_BALL: &'static str = "images/ball.png";
+    pub const PATH_DUST: &'static str = "images/dust.png";
     pub const PATH_STEP_1: &'static str = "audio/sound_effects/step1.ogg";
     pub const PATH_STEP_2: &'static str = "audio/sound_effects/step2.ogg";
     pub const PATH_STEP_3: &'static str = "audio/sound_effects/step3.ogg";
@@ -383,6 +416,7 @@ impl FromWorld for CreatureAssets {
                 },
             ),
             ball: assets.load(CreatureAssets::PATH_BALL),
+            dust: assets.load(CreatureAssets::PATH_DUST),
             steps: vec![
                 assets.load(CreatureAssets::PATH_STEP_1),
                 assets.load(CreatureAssets::PATH_STEP_2),
@@ -407,7 +441,12 @@ impl Command for KillCreature {
             atlas.index = 1;
         }
         if let Some(mut movement) = world.get_mut::<MovementController>(self.0) {
+            // freeze in place
             movement.intent_modifier = Vec2::ZERO;
+        }
+        if let Some(mut transform) = world.get_mut::<Transform>(self.0) {
+            // put behind dust animation
+            transform.translation.z = 0.4;
         }
         world.entity_mut(self.0).insert(DeathAnimation::new());
     }
