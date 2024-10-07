@@ -35,7 +35,7 @@ pub struct WaveCounter {
 #[derive(Resource, Asset, Reflect, Clone)]
 pub struct WaveSound {
     #[dependency]
-    sound: Handle<AudioSource>,
+    wave_cleared: Handle<AudioSource>,
     #[dependency]
     win: Handle<AudioSource>,
     #[dependency]
@@ -87,7 +87,7 @@ impl FromWorld for WaveSound {
     fn from_world(world: &mut World) -> Self {
         let assets = world.resource::<AssetServer>();
         Self {
-            sound: assets.load("audio/sound_effects/wave_cleared.ogg"),
+            wave_cleared: assets.load("audio/sound_effects/wave_cleared.ogg"),
             win: assets.load("audio/sound_effects/win.ogg"),
             lose: assets.load("audio/sound_effects/lose.ogg"),
         }
@@ -166,15 +166,15 @@ fn check_wave_spawn(
         };
 
         // Play sound on complete level.
-        // if wave_counter.wave > 0 {
-        //     commands.spawn((
-        //         AudioBundle {
-        //             source: sound.sound.clone(),
-        //             settings: PlaybackSettings::DESPAWN,
-        //         },
-        //         SoundEffect,
-        //     ));
-        // }
+        if wave_counter.wave > 0 {
+            commands.spawn((
+                AudioBundle {
+                    source: sound.wave_cleared.clone(),
+                    settings: PlaybackSettings::DESPAWN,
+                },
+                SoundEffect,
+            ));
+        }
 
         game_score.score = wave_counter.wave;
         wave_counter.wave += 1;
