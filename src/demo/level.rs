@@ -140,6 +140,7 @@ fn check_wave_spawn(
     mut wave_counter: ResMut<WaveCounter>,
     mut game_score: ResMut<GameScore>,
     level_handles: Res<Levels>,
+    sound: Res<WaveSound>,
     creatures: Query<Entity, With<Creature>>,
 ) {
     // If it's a first wave or the wave was cleared.
@@ -150,8 +151,21 @@ fn check_wave_spawn(
             next_screen.set(Screen::Score);
             return;
         };
+
+        // Play sound on complete level.
+        if wave_counter.wave > 0 {
+            commands.spawn((
+                AudioBundle {
+                    source: sound.sound.clone(),
+                    settings: PlaybackSettings::DESPAWN,
+                },
+                SoundEffect,
+            ));
+        }
+
         game_score.score = wave_counter.wave;
         wave_counter.wave += 1;
+
         commands.add(SpawnLevel(level_handle.clone()));
         timer.0.reset();
     }
@@ -183,21 +197,12 @@ fn spawn_level(
     mut commands: Commands,
     gameplay_area: Res<GameplayArea>,
     levels: Res<Assets<LevelDefinition>>,
-    sound: Res<WaveSound>,
 ) {
     let Some(level) = levels.get(&level_handle) else {
         // level not loaded, yet
         println!("Loading order wrong, level {level_handle:?} has not been loaded when it should have been spawned");
         return;
     };
-
-    commands.spawn((
-        AudioBundle {
-            source: sound.sound.clone(),
-            settings: PlaybackSettings::DESPAWN,
-        },
-        SoundEffect,
-    ));
 
     let mut rng = &mut rand::thread_rng();
     let size = gameplay_area.main_area.size() - 256.0;
