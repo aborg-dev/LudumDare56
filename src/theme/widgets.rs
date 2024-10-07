@@ -83,14 +83,24 @@ impl<T: Spawn> Widgets for T {
         entity.with_children(|children| {
             children.spawn((
                 Name::new("Header Text"),
-                TextBundle::from_section(
-                    text,
-                    TextStyle {
-                        font_size: 48.0,
-                        color: THEME_ASPARAGUS_DARK,
-                        font: asset.font.clone(),
+                TextBundle {
+                    text: Text::from_section(
+                        text,
+                        TextStyle {
+                            font_size: 48.0,
+                            color: Color::BLACK,
+                            font: asset.font.clone(),
+                        },
+                    ),
+                    style: Style {
+                        margin: UiRect {
+                            top: Px(20.0),
+                            ..default()
+                        },
+                        ..default()
                     },
-                ),
+                    ..default()
+                },
             ));
         });
         entity
