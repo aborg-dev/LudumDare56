@@ -5,6 +5,7 @@
 use std::time::Duration;
 
 use bevy::{
+    audio::Volume,
     ecs::{system::RunSystemOnce as _, world::Command},
     prelude::*,
     render::texture::{ImageLoaderSettings, ImageSampler},
@@ -117,7 +118,7 @@ fn process_bullets_landing(
         commands.spawn((
             AudioBundle {
                 source: creature_assets.hit.clone(),
-                settings: PlaybackSettings::DESPAWN,
+                settings: PlaybackSettings::DESPAWN.with_volume(Volume::new(0.5)),
             },
             SoundEffect,
         ));
