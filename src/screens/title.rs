@@ -8,7 +8,12 @@ pub(super) fn plugin(app: &mut App) {
     app.add_systems(OnEnter(Screen::Title), spawn_title_screen);
 }
 
-fn spawn_title_screen(mut commands: Commands) {
+fn spawn_title_screen(mut commands: Commands, assets: Res<UiAssets>) {
+    commands.spawn(SpriteBundle {
+        texture: assets.background.clone(),
+        ..Default::default()
+    });
+
     commands
         .ui_root()
         .insert(StateScoped(Screen::Title))
